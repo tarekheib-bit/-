@@ -1,0 +1,44 @@
+﻿# Environment variables
+.env
+.env.local
+.env.*.local
+
+# API keys and secrets
+secrets.json
+credentials.json
+*.key
+*.pem
+
+# Node modules
+node_modules/
+package-lock.json
+yarn.lock
+
+# Python
+__pycache__/
+*.py[cod]
+*.class
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build outputs
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*

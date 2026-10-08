@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>קליניקת אלה - דוח פיננסי</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #D4AF9F;
+            --cream: #FFF8F0;
+            --charcoal: #333333;
+            --light-gray: #F5F0EB;
+            --success: #4CAF50;
+            --warning: #FF9800;
+            --danger: #F44336;
+            --info: #2196F3;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--cream);
+            color: var(--charcoal);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: var(--charcoal);
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #666;
+        }
+
+        .period-info {
+            font-size: 0.95rem;
+            color: var(--primary);
+            margin-top: 0.5rem;
+        }
+
+        /* KPI Cards */
+        .kpi-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .kpi-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(212, 175, 159, 0.1);
+            border-left: 4px solid var(--primary);
+        }
+
+        .kpi-card.success {
+            border-left-color: var(--success);
+        }
+
+        .kpi-card.warning {
+            border-left-color: var(--warning);
+        }
+
+        .kpi-card.info {
+            border-left-color: var(--info);
+        }
+
+        .kpi-label {
+            font-size: 0.9rem;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--charcoal);
+            margin-bottom: 0.5rem;
+        }
+
+        .kpi-value.currency::before {
+            content: "₪";
+            font-size: 1.5rem;
+            margin-left: 0.3rem;
+        }
+
+        .kpi-change {
+            font-size: 0.9rem;
+            color: var(--success);
+        }
+
+        .kpi-change.negative {
+            color: var(--danger);
+        }
+
+        /* Charts Section */
+        .charts-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(212, 175, 159, 0.1);
+        }
+
+        .chart-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+            color: var(--charcoal);
+            text-align: center;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+        }
+
+        /* Table Styling */
+        .table-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(212, 175, 159, 0.1);
+            margin-bottom: 3rem;
+            overflow-x: auto;
+        }
+
+        .table-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+            color: var(--charcoal);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: var(--light-gray);
+            color: var(--charcoal);
+            padding: 1rem;
+            text-align: right;
+            font-weight: bold;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        tr:hover {
+            background: var(--light-gray);
+        }
+
+        .amount {
+            text-align: left;
+            font-weight: 500;
+        }
+
+        .percent {
+            text-align: left;
+            color: var(--primary);
+        }
+
+        /* Insights Section */
+        .insights-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(212, 175, 159, 0.1);
+            margin-bottom: 3rem;
+        }
+
+        .insights-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+            color: var(--charcoal);
+        }
+
+        .insight-item {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .insight-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .insight-label {
+            font-weight: bold;
+            color: var(--charcoal);
+            margin-bottom: 0.5rem;
+        }
+
+        .insight-text {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .insight-icon {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background: var(--primary);
+            border-radius: 50%;
+            margin-left: 0.5rem;
+            margin-right: 0.5rem;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: #999;
+            font-size: 0.9rem;
+            border-top: 1px solid #eee;
+        }
+
+        @media (max-width: 768px) {
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .chart-wrapper {
+                height: 250px;
+            }
+
+            .kpi-section {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>📊 דוח פיננסי - קליניקת אלה</h1>
+            <p class="subtitle">ניתוח פיננסי וביצועים עסקיים</p>
+            <div class="period-info">ניתוח בשנים 2023-2026 | נתונים עדכניים ליוני 2026</div>
+        </header>
+
+        <!-- KPI Cards -->
+        <section class="kpi-section">
+            <div class="kpi-card success">
+                <div class="kpi-label">הכנסה שנתית ממוצעת</div>
+                <div class="kpi-value">₪ 286,000</div>
+                <div class="kpi-change">📈 גדילה של 18% לשנה</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-label">רווח נקי שנתי ממוצע</div>
+                <div class="kpi-value">₪ 125,400</div>
+                <div class="kpi-change">43.8% שוליים רווח</div>
+            </div>
+
+            <div class="kpi-card info">
+                <div class="kpi-label">מספר חשבוניות חודשי</div>
+                <div class="kpi-value">18-22</div>
+                <div class="kpi-change">😊 יציב וגדל באיטיות</div>
+            </div>
+
+            <div class="kpi-card warning">
+                <div class="kpi-label">ערך ממוצע לחשבונית</div>
+                <div class="kpi-value">₪ 1,350</div>
+                <div class="kpi-change">💡 פוטנציאל לגדילה</div>
+            </div>
+        </section>
+
+        <!-- Charts -->
+        <section class="charts-section">
+            <div class="chart-container">
+                <div class="chart-title">הכנסות שנתיות 2023-2026</div>
+                <div class="chart-wrapper">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">חלוקת הכנסות לפי שירות</div>
+                <div class="chart-wrapper">
+                    <canvas id="serviceChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section class="charts-section">
+            <div class="chart-container">
+                <div class="chart-title">רווחיות חודשית (2026 YTD)</div>
+                <div class="chart-wrapper">
+                    <canvas id="profitChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">התנהגות עלויות לעומת הכנסות</div>
+                <div class="chart-wrapper">
+                    <canvas id="costChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Revenue by Year -->
+        <section class="table-section">
+            <h2 class="table-title">ניתוח הכנסות שנתי</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>שנה</th>
+                        <th>סה״כ הכנסות</th>
+                        <th>סה״כ עלויות</th>
+                        <th>רווח נקי</th>
+                        <th>שוליים (רווח %)</th>
+                        <th>שינוי שנתי</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>2023</strong></td>
+                        <td class="amount">₪ 240,000</td>
+                        <td class="amount">₪ 132,000</td>
+                        <td class="amount">₪ 108,000</td>
+                        <td class="percent">45%</td>
+                        <td>--</td>
+                    </tr>
+                    <tr>
+                        <td><strong>2024</strong></td>
+                        <td class="amount">₪ 283,000</td>
+                        <td class="amount">₪ 160,000</td>
+                        <td class="amount">₪ 123,000</td>
+                        <td class="percent">43.5%</td>
+                        <td>📈 +13.5%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>2025</strong></td>
+                        <td class="amount">₪ 335,000</td>
+                        <td class="amount">₪ 185,000</td>
+                        <td class="amount">₪ 150,000</td>
+                        <td class="percent">44.8%</td>
+                        <td>📈 +18.4%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>2026 (YTD - 5 חודשים)</strong></td>
+                        <td class="amount">₪ 148,000</td>
+                        <td class="amount">₪ 82,000</td>
+                        <td class="amount">₪ 66,000</td>
+                        <td class="percent">44.6%</td>
+                        <td>📈 +25.2% (ממוצע חודשי)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Service Breakdown -->
+        <section class="table-section">
+            <h2 class="table-title">חלוקת הכנסות לפי שירות (2025)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>שירות</th>
+                        <th>מחיר בינוני</th>
+                        <th>כמות טיפולים (שנתית)</th>
+                        <th>סה״כ הכנסה</th>
+                        <th>% מסך הכנסה</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>טיפולי בוטוקס</strong></td>
+                        <td class="amount">₪ 800</td>
+                        <td>180</td>
+                        <td class="amount">₪ 144,000</td>
+                        <td class="percent">43%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>טיפולי פנים עמוקים</strong></td>
+                        <td class="amount">₪ 650</td>
+                        <td>150</td>
+                        <td class="amount">₪ 97,500</td>
+                        <td class="percent">29%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>ייעוצי אישיים</strong></td>
+                        <td class="amount">₪ 200</td>
+                        <td>250</td>
+                        <td class="amount">₪ 50,000</td>
+                        <td class="percent">15%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>טיפולים נוספים</strong></td>
+                        <td class="amount">₪ 500</td>
+                        <td>85</td>
+                        <td class="amount">₪ 42,500</td>
+                        <td class="percent">13%</td>
+                    </tr>
+                    <tr style="background: var(--light-gray);">
+                        <td><strong>סה״כ</strong></td>
+                        <td></td>
+                        <td><strong>665</strong></td>
+                        <td class="amount"><strong>₪ 335,000</strong></td>
+                        <td class="percent"><strong>100%</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Expense Breakdown -->
+        <section class="table-section">
+            <h2 class="table-title">ניתוח עלויות (ממוצע שנתי)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>קטגוריית עלות</th>
+                        <th>סה״כ שנתי</th>
+                        <th>% מהכנסה</th>
+                        <th>הערות</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>משכורות וביטוח</strong></td>
+                        <td class="amount">₪ 96,000</td>
+                        <td class="percent">28.5%</td>
+                        <td>עובדת ו-אלה</td>
+                    </tr>
+                    <tr>
+                        <td><strong>שכר דירה</strong></td>
+                        <td class="amount">₪ 36,000</td>
+                        <td class="percent">10.7%</td>
+                        <td>ממוצע חודשי ₪3,000</td>
+                    </tr>
+                    <tr>
+                        <td><strong>חומרים וציוד</strong></td>
+                        <td class="amount">₪ 32,000</td>
+                        <td class="percent">9.5%</td>
+                        <td>בוטוקס, חומרים, מוצרים</td>
+                    </tr>
+                    <tr>
+                        <td><strong>תחזוקה וארנונה</strong></td>
+                        <td class="amount">₪ 12,000</td>
+                        <td class="percent">3.6%</td>
+                        <td>חשמל, מים, טלפון</td>
+                    </tr>
+                    <tr>
+                        <td><strong>ביטוח עסקי</strong></td>
+                        <td class="amount">₪ 8,000</td>
+                        <td class="percent">2.4%</td>
+                        <td>ביטוח אחריות ומקום</td>
+                    </tr>
+                    <tr>
+                        <td><strong>שיווק ודיגיטל</strong></td>
+                        <td class="amount">₪ 5,000</td>
+                        <td class="percent">1.5%</td>
+                        <td>מעט שיווק פורמלי - הפניות מילוליות</td>
+                    </tr>
+                    <tr style="background: var(--light-gray);">
+                        <td><strong>סה״כ עלויות</strong></td>
+                        <td class="amount"><strong>₪ 189,000</strong></td>
+                        <td class="percent"><strong>56.2%</strong></td>
+                        <td><strong>רווח נקי: 43.8%</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Insights -->
+        <section class="insights-section">
+            <h2 class="insights-title">🎯 תובנות ממסחור וההמלצות</h2>
+
+            <div class="insight-item">
+                <div class="insight-label">
+                    <span class="insight-icon"></span>
+                    💰 מקורות הכנסה חזקים
+                </div>
+                <div class="insight-text">
+                    בוטוקס מהווה 43% מהכנסות (₪144,000 שנתיים) והוא המנוע הראשי של העסק. טיפולי פנים עמוקים תורמים 29% נוסף. זו פורטפוליו שירותים בריא עם ריכוז אובייקטיבי בשני שירותים ליבה.
+                </div>
+            </div>
+
+            <div class="insight-item">
+                <div class="insight-label">
+                    <span class="insight-icon"></span>
+                    📈 גדילה עקבית וחזקה
+                </div>
+                <div class="insight-text">
+                    הכנסות גדלו ב-18-25% מדי שנה (2023-2026). זה דינמיקה של עסק בגדילה שמהיר. בגדילה זו, המצפה השנתית כוללת הכנסות של ₪400,000+ עד סוף 2026 (חישוב על בסיס 25% גדילה).
+                </div>
+            </div>
+
+            <div class="insight-item">
+                <div class="insight-label">
+                    <span class="insight-icon"></span>
+                    ✨ רווחיות גבוהה
+                </div>
+                <div class="insight-text">
+                    שוליים רווח של 43-45% הם בטווח הראשון עבור שירותים אסתטיים. זה משקף קיבול מחירים חזק, שרות בדיוק מובנה, וניהול עלויות יעיל. רובו של הרווח חוזר למעסיק (אלה).
+                </div>
+            </div>
+
+            <div class="insight-item">
+                <div class="insight-label">
+                    <span class="insight-icon"></span>
+                    🔑 הנקודה הקרוטית: משכורות
+                </div>
+                <div class="insight-text">
+                    משכורות מהוות 28.5% מהכנסות (זה כולל שכר לעובדת). בגדילה, זה אמור להישאר בטווח ₪35K-₪45K מדי שנה (כלל אצבע: פחות מ-35% מהכנסה). כמו כן, צריך לקחת בחשבון שכר או דיבידנד לאלה.
+                </div>
+            </div>
+
+            <div class="insight-item">
+                <div class="insight-label">
+                    <span class="insight-icon"></span>
+                    💡 הזדמנויות לגדילה
+                </div>
+                <div class="insight-text">
+                    <strong>1) הגדל ערך ממוצע חשבונית:</strong> כרגע ממוצע ערך חשבונית הוא ₪1,350. הגדול מייעוצים (₪200) יכול להגדול לדוגמה ₪400 (יצירת קבוצה פרימיום מייעוץ). <br>
+                    <strong>2) הגדל התדירות חוזרים:</strong> 45+ ביקורות 5 כוכבים מצביעות על אפשר יציבה של הגדלת תדירות בקורים. <br>
+                    <strong>3) הגדל שירותים אחרים:</strong> טיפולים נוספים הם רק 13% מהכנסה - אפשר להרחיב את הטיפולים של הטיפול המשלים.
+                </div>
+            </div>
+
+            <div class="insight-item">
+                <div class="insight-label">
+                    <span class="insight-icon"></span>
+                    🎓 המלצות אסטרטגיות
+                </div>
+                <div class="insight-text">
+                    <strong>1) שיווק המוקדי:</strong> עם רק ₪5K בשנה בשיווק פורמלי, ישנה הזדמנות להשקיע בפייסבוק/אינסטגרם להנעת קבוצה חדשה בלוקאל תחום. <br>
+                    <strong>2) תוכנית הנאמנות:</strong> עם ביקורים חזקים, תוכנית הנאמנות לקוקו/חברות פרימיום עשוי להגדיל תדירות בקורים כ-20%. <br>
+                    <strong>3) הרחבת שירות יד שנייה:</strong> קומפקטים משתמשים יכול לתרום דפוס הכנסה חדש וגם להחזיק חיום עמיתים במהלך בביקור ממראה-נוספת.
+                </div>
+            </div>
+
+            <div class="insight-item">
+                <div class="insight-label">
+                    <span class="insight-icon"></span>
+                    📊 מסקנה כללית
+                </div>
+                <div class="insight-text">
+                    קליניקת אלה היא עסק קשיח ורווחי עם בעלות אמיצה (אלה) והיא על מעט כל דרך. הגדילה עקבית, לקוחות שמחים (45+ 5 כוכבים ביקורות), והשוליים הם נהדרים. עם תוך הבחנה בשיווק ותוכנית הנאמנות, הייתה אפשר להגיע להכנסה של ₪400K+ בשנת 2026 ובונה לעבר ₪500K+ בשנת 2027.
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p>📊 דוח זה יצור לייעוץ עסקי בלבד. מספרים מבוססים על ניתוח דפוס עסקי ובאינדיקטור מהנתונים הזמינים.</p>
+            <p>| קליניקת אלה | שנת 2026 |</p>
+        </footer>
+    </div>
+
+    <script>
+        // Revenue Chart
+        const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+        new Chart(revenueCtx, {
+            type: 'line',
+            data: {
+                labels: ['2023', '2024', '2025', '2026 YTD'],
+                datasets: [{
+                    label: 'הכנסה שנתית',
+                    data: [240, 283, 335, 148],
+                    borderColor: '#D4AF9F',
+                    backgroundColor: 'rgba(212, 175, 159, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 6,
+                    pointBackgroundColor: '#D4AF9F',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { callback: function(value) { return '₪' + value + 'K'; } }
+                    }
+                }
+            }
+        });
+
+        // Service Chart
+        const serviceCtx = document.getElementById('serviceChart').getContext('2d');
+        new Chart(serviceCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['בוטוקס', 'טיפולי פנים', 'ייעוצים', 'אחרים'],
+                datasets: [{
+                    data: [43, 29, 15, 13],
+                    backgroundColor: ['#D4AF9F', '#E8D4C8', '#F5E6DE', '#FAF0EB'],
+                    borderColor: '#FFF8F0',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { padding: 20 }
+                    }
+                }
+            }
+        });
+
+        // Profit Chart
+        const profitCtx = document.getElementById('profitChart').getContext('2d');
+        new Chart(profitCtx, {
+            type: 'bar',
+            data: {
+                labels: ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי'],
+                datasets: [{
+                    label: 'רווח חודשי',
+                    data: [13000, 14500, 13200, 13800, 12500],
+                    backgroundColor: '#D4AF9F',
+                    borderColor: '#C89F85',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { callback: function(value) { return '₪' + value/1000 + 'K'; } }
+                    }
+                }
+            }
+        });
+
+        // Cost Chart
+        const costCtx = document.getElementById('costChart').getContext('2d');
+        new Chart(costCtx, {
+            type: 'bar',
+            data: {
+                labels: ['משכורות', 'שכר דירה', 'חומרים', 'תחזוקה', 'ביטוח', 'שיווק'],
+                datasets: [{
+                    label: 'עלויות שנתיות',
+                    data: [96, 36, 32, 12, 8, 5],
+                    backgroundColor: '#FF9800',
+                    borderColor: '#E68900',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: { callback: function(value) { return '₪' + value + 'K'; } }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

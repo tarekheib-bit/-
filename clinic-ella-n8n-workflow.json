@@ -1,0 +1,191 @@
+{
+  "name": "Clinic Ella - Lead Form Integration",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "clinic-ella-leads",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "webhook_trigger",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "clinic-ella-leads"
+    },
+    {
+      "parameters": {
+        "spreadsheetId": "{{GOOGLE_SHEET_ID}}",
+        "range": "Sheet1",
+        "toUpsert": false,
+        "columns": {
+          "mappingMode": "defineByPos",
+          "value": [
+            {
+              "position": 0,
+              "key": "timestamp"
+            },
+            {
+              "position": 1,
+              "key": "name"
+            },
+            {
+              "position": 2,
+              "key": "phone"
+            },
+            {
+              "position": 3,
+              "key": "email"
+            },
+            {
+              "position": 4,
+              "key": "service"
+            },
+            {
+              "position": 5,
+              "key": "message"
+            },
+            {
+              "position": 6,
+              "key": "status"
+            }
+          ]
+        }
+      },
+      "id": "google_sheets_append",
+      "name": "Google Sheets - Append Row",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 3,
+      "position": [500, 300],
+      "credentials": {
+        "googleSheetsOAuth2Api": "{{GOOGLE_CREDENTIALS}}"
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "timestamp",
+              "value": "={{$node.Webhook.json.timestamp}}",
+              "type": "string"
+            },
+            {
+              "id": "2",
+              "name": "name",
+              "value": "={{$node.Webhook.json.name}}",
+              "type": "string"
+            },
+            {
+              "id": "3",
+              "name": "phone",
+              "value": "={{$node.Webhook.json.phone}}",
+              "type": "string"
+            },
+            {
+              "id": "4",
+              "name": "email",
+              "value": "={{$node.Webhook.json.email}}",
+              "type": "string"
+            },
+            {
+              "id": "5",
+              "name": "service",
+              "value": "={{$node.Webhook.json.service}}",
+              "type": "string"
+            },
+            {
+              "id": "6",
+              "name": "message",
+              "value": "={{$node.Webhook.json.message}}",
+              "type": "string"
+            },
+            {
+              "id": "7",
+              "name": "status",
+              "value": "pending",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "id": "assign_data",
+      "name": "Assign Data",
+      "type": "n8n-nodes-base.assignData",
+      "typeVersion": 1,
+      "position": [350, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$node.Webhook.json.webhookUrl || 'https://webhook.site/your-test-url'}}",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "success",
+              "value": "true"
+            },
+            {
+              "name": "message",
+              "value": "ליד נקלט בהצלחה"
+            },
+            {
+              "name": "leadName",
+              "value": "={{$node.Webhook.json.name}}"
+            }
+          ]
+        }
+      },
+      "id": "http_response",
+      "name": "HTTP Response",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Assign Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assign Data": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets - Append Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets - Append Row": {
+      "main": [
+        [
+          {
+            "node": "HTTP Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "saveManualExecutions": true,
+    "timezone": "Asia/Jerusalem"
+  },
+  "staticData": null,
+  "tags": ["clinic", "leads", "automation"]
+}

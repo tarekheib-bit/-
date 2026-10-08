@@ -1,0 +1,541 @@
+{
+  "name": "Invoice Processor",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## 🧾 Use Case 2: Invoice Processor\n\n**Form Trigger (images) → Code (split files) → LLM Vision (extract) → Set (mapping) → Switch (amount tier) → Sheets per tab + Gmail manager alert**\n\nFlow Nodes covered: **Switch, Code**\nAI Special Nodes: **Vision (image analysis)**\n\n💡 DRY principle: the spreadsheet URL lives in one ⚙️ Config node and every Sheets node pulls it via expression. Tabs are located by name, not by manual selection.",
+        "height": 688,
+        "width": 1824,
+        "color": 5
+      },
+      "id": "a37e2ff4-6bcd-45fe-898e-3acf90d74915",
+      "name": "🧾 Use Case 2: Invoice Processor",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [48, -80]
+    },
+    {
+      "parameters": {
+        "formTitle": "העלאת חשבונית",
+        "formDescription": "העלו תמונות חשבוניות (jpg/png). אפשר מספר קבצים בבת-אחת.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "invoice",
+              "fieldType": "file",
+              "multipleFiles": true,
+              "acceptFileTypes": ".jpg,.jpeg,.png",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "email",
+              "fieldType": "email",
+              "placeholder": "where_to_send@example.com",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2328a258-6bb2-4712-af96-0e81c1daba76",
+      "name": "🧾 Form Trigger: Invoice",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [112, 240]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cfg-invoices-sheet-url",
+              "name": "Invoices Sheet URL",
+              "value": "PASTE_SPREADSHEET_URL_HERE",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "include": "all",
+        "options": {
+          "includeBinary": true,
+          "stripBinary": false
+        }
+      },
+      "id": "b7a1c4e2-0d3f-4a58-9c26-1e8f5a7d9b40",
+      "name": "⚙️ Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [336, 240]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Form Trigger with multipleFiles=true outputs binary keys like:\n// - invoice (single file uploaded)\n// - invoice_0, invoice_1, ... (multiple files)\n// This Code node normalizes both shapes to N items each with binary.invoice\nconst items = $input.all();\nconst result = [];\n\nfor (const item of items) {\n  const binary = item.binary || {};\n  const fileKeys = Object.keys(binary).filter(k => k === 'invoice' || k.startsWith('invoice_'));\n\n  if (fileKeys.length === 0) {\n    throw new Error('No invoice file uploaded. Form field name should be \"invoice\".');\n  }\n\n  for (const key of fileKeys) {\n    result.push({\n      json: {\n        ...item.json,\n        _filename: binary[key].fileName || key,\n        _index: result.length\n      },\n      binary: { invoice: binary[key] }\n    });\n  }\n}\n\nreturn result;"
+      },
+      "id": "a6341b87-d53a-457a-9f95-87e51208d742",
+      "name": "📄 Split Multi-File",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [560, 240]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=נתח את החשבונית בתמונה המצורפת והחזר JSON תקין במבנה המוגדר ב-Output Parser.",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "אתה מחלץ נתונים מחשבוניות. תן לחשבונית בתמונה ונחלץ ממנה JSON עם 4 שדות בלבד:\n\n- vendor: שם החברה המנפיקה (Bill From / מאת), לא הלקוח. שם רשמי כפי שמופיע בכותרת.\n- date: תאריך הוצאת החשבונית בפורמט YYYY-MM-DD. אם יש 'Date Issued' השתמש בזה. אחרת התאריך הראשי שמוצג.\n- amount: **סך הכל הסופי לתשלום**, אחרי כל המסים והעמלות (TOTAL / Grand Total / סה\"כ לתשלום). זה לא ה-Subtotal ולא Line Item. בחשבונית עם כמה מטבעות, בחר את הסכום בעמודה הראשית/הבולטת.\n- currency: קוד המטבע של ה-amount (ILS/USD/EUR/GBP). אותו מטבע שבו ה-amount.\n\nכללים:\n1. amount הוא מספר בלבד, ללא סימני מטבע ופסיקים (1234.56 ולא 1,234.56 ולא $1234)\n2. אם החשבונית מציגה גם המרה למטבע אחר (לדוגמה ILS תחת USD), בחר את המטבע **המקורי** של החשבונית (זה שבו החיובים)\n3. החזר JSON תקין בלבד, ללא markdown code fences"
+            },
+            {
+              "type": "HumanMessagePromptTemplate",
+              "messageType": "imageBinary",
+              "binaryImageDataKey": "invoice"
+            }
+          ]
+        },
+        "batching": {
+          "batchSize": 3,
+          "delayBetweenBatches": 1000
+        }
+      },
+      "id": "c3fecf06-f0b2-48f8-bfde-49440181194f",
+      "name": "🧠 LLM Chain: Invoice Analysis",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [752, 240]
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"vendor\": \"Cloudinary Ltd.\",\n  \"date\": \"2026-01-14\",\n  \"amount\": 116.82,\n  \"currency\": \"USD\"\n}"
+      },
+      "id": "41bc10ed-a7f3-4f00-9868-ef8703e349ac",
+      "name": "Structured Output Parser (Invoice)",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [912, 432]
+    },
+    {
+      "parameters": {
+        "model": "anthropic/claude-opus-4.8-fast",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [688, 432],
+      "id": "85ec4f71-ff1a-4c46-9cc3-df024b7f3782",
+      "name": "OpenRouter Chat Model1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "inv-vendor",
+              "name": "vendor",
+              "value": "={{ $json.output.vendor }}",
+              "type": "string"
+            },
+            {
+              "id": "inv-date",
+              "name": "date",
+              "value": "={{ $json.output.date }}",
+              "type": "string"
+            },
+            {
+              "id": "inv-amount",
+              "name": "amount",
+              "value": "={{ $json.output.amount }}",
+              "type": "number"
+            },
+            {
+              "id": "inv-currency",
+              "name": "currency",
+              "value": "={{ $json.output.currency }}",
+              "type": "string"
+            },
+            {
+              "id": "inv-filename",
+              "name": "filename",
+              "value": "={{ $json._filename }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8f2d6c1a-4b7e-4f90-a3d5-6c8e2b0f7a19",
+      "name": "Edit Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1056, 240]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "rule-petty-cash",
+                    "leftValue": "={{ $json.amount }}",
+                    "rightValue": 500,
+                    "operator": {
+                      "type": "number",
+                      "operation": "lt"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Petty Cash"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "rule-standard",
+                    "leftValue": "={{ $json.amount }}",
+                    "rightValue": 5000,
+                    "operator": {
+                      "type": "number",
+                      "operation": "lte"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Standard"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "rule-approval",
+                    "leftValue": "={{ $json.amount }}",
+                    "rightValue": 5000,
+                    "operator": {
+                      "type": "number",
+                      "operation": "gt"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Approval Required"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "none"
+        }
+      },
+      "id": "274c367b-1c94-43de-93ae-b55e172b8706",
+      "name": "🔀 Switch: Amount Tier",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [1232, 224]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('⚙️ Config').first().json['Invoices Sheet URL'].match(/[-\\w]{25,}/)[0] }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Petty Cash"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "ad19c059-085a-409a-b9ad-544cf9fa0af7",
+      "name": "📊 Sheets: Petty Cash",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [1456, 48]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('⚙️ Config').first().json['Invoices Sheet URL'].match(/[-\\w]{25,}/)[0] }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Standard"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "d6f5edeb-d0a7-4613-b2b7-564d0d6b2b3f",
+      "name": "📊 Sheets: Standard",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [1456, 208]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('⚙️ Config').first().json['Invoices Sheet URL'].match(/[-\\w]{25,}/)[0] }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Approval Required"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "6d5abe65-837c-4c3f-9aeb-f44e004ecc73",
+      "name": "📊 Sheets: Approval Required",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [1456, 400]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $('🧾 Form Trigger: Invoice').first().json.email }}",
+        "subject": "=⚠️ אישור חשבונית: {{ $('🧠 LLM Chain: Invoice Analysis').item.json.output.currency }} {{ $('🧠 LLM Chain: Invoice Analysis').item.json.output.amount }} מ-{{ $('🧠 LLM Chain: Invoice Analysis').item.json.output.vendor }}",
+        "message": "=<div dir=\"rtl\" lang=\"he\" style=\"font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#f9fafb;color:#1f2937\">\n  <div style=\"background:linear-gradient(135deg,#dc2626 0%,#ef4444 100%);padding:28px;color:white;border-radius:12px 12px 0 0\">\n    <div style=\"font-size:13px;opacity:0.9;margin-bottom:8px\">🧾 התראת אישור</div>\n    <h1 style=\"margin:0;font-size:26px;font-weight:700\">⚠️ חשבונית גדולה דורשת אישור מנהל</h1>\n  </div>\n  <div style=\"background:white;padding:24px 28px;border-right:1px solid #e5e7eb;border-left:1px solid #e5e7eb\">\n    <div style=\"font-size:36px;font-weight:700;color:#991b1b;margin-bottom:6px\">{{ $('🧠 LLM Chain: Invoice Analysis').item.json.output.currency }} {{ $('🧠 LLM Chain: Invoice Analysis').item.json.output.amount }}</div>\n    <div style=\"font-size:14px;color:#6b7280;margin-bottom:24px\">חשבונית מ-{{ $('🧠 LLM Chain: Invoice Analysis').item.json.output.vendor }}</div>\n    <div style=\"display:flex;gap:16px;border-top:1px solid #f3f4f6;padding-top:20px\">\n      <div style=\"flex:1\"><div style=\"font-size:11px;color:#6b7280;letter-spacing:0.5px;margin-bottom:4px\">📅 תאריך</div><div style=\"font-size:15px;font-weight:600\">{{ $('🧠 LLM Chain: Invoice Analysis').item.json.output.date }}</div></div>\n      <div style=\"flex:1\"><div style=\"font-size:11px;color:#6b7280;letter-spacing:0.5px;margin-bottom:4px\">🏢 ספק</div><div style=\"font-size:15px;font-weight:600\">{{ $('🧠 LLM Chain: Invoice Analysis').item.json.output.vendor }}</div></div>\n    </div>\n    <div style=\"background:#fef3c7;border-right:4px solid #f59e0b;padding:14px 18px;border-radius:6px;margin-top:24px\">\n      <div style=\"font-size:13px;color:#92400e;line-height:1.6\"><strong>⚡ נדרש:</strong> בדיקת אישור מנהל ועדכון סטטוס ב-Sheet 'Approval Required'.</div>\n    </div>\n  </div>\n  <div style=\"background:#f9fafb;padding:14px 28px;border-radius:0 0 12px 12px;border:1px solid #e5e7eb;border-top:none;font-size:12px;color:#6b7280;text-align:center\">\n    🤖 Focus AI · {{ $now.toFormat('dd/MM/yyyy HH:mm') }}\n  </div>\n</div>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "753a89aa-ff8b-4c30-9911-14a51e822a6f",
+      "name": "📧 Gmail: Manager Alert",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [1680, 192]
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [112, 928],
+      "id": "68a13a10-93c4-4be9-93e7-7459727c7abf",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "content": "## ⚙️ Database Setup (run once)\n\nA small automation, separate from the main flow: it creates the spreadsheet with the three tabs (Petty Cash / Standard / Approval Required).\n\n**After running:** copy the URL of the new spreadsheet (or its ID, both work) into the ⚙️ Config node at the start of the main flow. Every Sheets node pulls it from there automatically, one place to update.",
+        "height": 480,
+        "width": 528
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [48, 624],
+      "id": "a2d2f50b-16d5-440e-9674-3ef80112bca3",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "resource": "spreadsheet",
+        "operation": "create",
+        "title": "Focus AI - Invoices",
+        "sheetsUi": {
+          "sheetValues": [
+            {
+              "title": "Petty Cash"
+            },
+            {
+              "title": "Standard"
+            },
+            {
+              "title": "Approval Required"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [320, 928],
+      "id": "de79184a-7b63-44ab-b066-7f0a44fb43fe",
+      "name": "Create spreadsheet"
+    }
+  ],
+  "connections": {
+    "🧾 Form Trigger: Invoice": {
+      "main": [
+        [
+          {
+            "node": "⚙️ Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "⚙️ Config": {
+      "main": [
+        [
+          {
+            "node": "📄 Split Multi-File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📄 Split Multi-File": {
+      "main": [
+        [
+          {
+            "node": "🧠 LLM Chain: Invoice Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🧠 LLM Chain: Invoice Analysis": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "🔀 Switch: Amount Tier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser (Invoice)": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "🧠 LLM Chain: Invoice Analysis",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔀 Switch: Amount Tier": {
+      "main": [
+        [
+          {
+            "node": "📊 Sheets: Petty Cash",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "📊 Sheets: Standard",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "📊 Sheets: Approval Required",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📊 Sheets: Approval Required": {
+      "main": [
+        [
+          {
+            "node": "📧 Gmail: Manager Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "🧠 LLM Chain: Invoice Analysis",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Create spreadsheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "id": "",
+  "versionId": ""
+}

@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מסכם שיחות מכירה | Focus AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #a855f7;
+            --primary-light: #ede9fe;
+            --primary-dark: #6b21b6;
+            --success: #16a34a;
+            --warning: #ca8a04;
+            --danger: #dc2626;
+            --bg: #f5f5f7;
+            --bg-card: #ffffff;
+            --text-primary: #1d1d1f;
+            --text-secondary: #6e6e73;
+            --border: #e5e5ea;
+            --blue: #3b82f6;
+            --blue-light: #dbeafe;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            line-height: 1.5;
+            direction: rtl;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 24px 16px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 32px;
+            padding: 24px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .upload-section {
+            background: var(--bg-card);
+            border: 2px dashed var(--border);
+            border-radius: 16px;
+            padding: 32px 24px;
+            margin-bottom: 24px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section.dragover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .upload-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
+
+        .upload-text {
+            font-size: 15px;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .upload-hint {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .file-input-wrapper {
+            display: inline-block;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            top: -9999px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--border);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: #d5d5d7;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .email-section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border);
+        }
+
+        .email-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .email-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .email-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .file-name {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .file-name.has-file {
+            color: var(--success);
+            background: #f0fdf4;
+            border-color: var(--success);
+        }
+
+        .analysis-section {
+            display: none;
+        }
+
+        .analysis-section.active {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 32px;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--primary-light);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 12px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .result-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .result-header {
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .result-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--primary);
+        }
+
+        .result-summary {
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--text-primary);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .metric-box {
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .metric-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .metric-deal {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .metric-probability {
+            background: var(--blue-light);
+            color: var(--blue);
+        }
+
+        .metric-sentiment-positive {
+            background: #dcfce7;
+            color: var(--success);
+        }
+
+        .metric-sentiment-neutral {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .metric-sentiment-negative {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .metric-urgency-low {
+            background: #dcfce7;
+            color: var(--success);
+        }
+
+        .metric-urgency-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .metric-urgency-high {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .section {
+            margin: 20px 0;
+        }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .key-quote {
+            background: var(--primary-light);
+            border-right: 4px solid var(--primary);
+            border-radius: 8px;
+            padding: 14px 16px;
+            font-size: 14px;
+            font-style: italic;
+            color: var(--primary-dark);
+            line-height: 1.6;
+        }
+
+        .topics-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .topic-tag {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .red-flags {
+            background: #fef2f2;
+            border-right: 4px solid var(--danger);
+            border-radius: 8px;
+            padding: 12px 16px;
+        }
+
+        .red-flags-title {
+            font-size: 11px;
+            color: var(--danger);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .red-flags-list {
+            list-style-position: inside;
+            margin: 0;
+            padding: 0;
+            font-size: 13px;
+            color: #991b1b;
+            line-height: 1.7;
+        }
+
+        .red-flags-list li {
+            margin-bottom: 4px;
+        }
+
+        .next-action {
+            background: #eef2ff;
+            border-right: 4px solid var(--blue);
+            border-radius: 8px;
+            padding: 14px 16px;
+        }
+
+        .next-action-title {
+            font-size: 11px;
+            color: var(--blue);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .next-action-text {
+            font-size: 14px;
+            color: var(--blue);
+            font-weight: 600;
+            line-height: 1.5;
+        }
+
+        .history-section {
+            margin-top: 40px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+        }
+
+        .history-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .history-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .history-item:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .history-item-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .history-item-meta {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .history-empty {
+            text-align: center;
+            padding: 24px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .error-message {
+            background: #fef2f2;
+            border: 1px solid var(--danger);
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: #991b1b;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 16px 12px;
+            }
+
+            .result-card {
+                padding: 16px;
+            }
+
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .upload-section {
+                padding: 20px 16px;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .file-name {
+                order: -1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">🎯 Focus AI</div>
+            <div class="subtitle">מסכם שיחות מכירה</div>
+        </header>
+
+        <div class="upload-section" id="uploadSection">
+            <div class="upload-icon">🎙️</div>
+            <div class="upload-text">העלו הקלטת שיחה</div>
+            <div class="upload-hint">MP3, M4A או WAV (עד 25MB)</div>
+            <div class="file-input-wrapper">
+                <button class="btn btn-primary">בחרו קובץ</button>
+                <input type="file" id="audioFile" accept=".mp3,.m4a,.wav">
+            </div>
+        </div>
+
+        <div class="email-section">
+            <label class="email-label">שלחו הודעה אליי כשהניתוח מוכן</label>
+            <input
+                type="email"
+                class="email-input"
+                id="emailInput"
+                placeholder="name@company.com"
+                value="tarekheib@gmail.com"
+            >
+        </div>
+
+        <div class="controls">
+            <div class="file-name" id="fileName">אין קובץ נבחר</div>
+            <button class="btn btn-primary" id="analyzeBtn" disabled>נתח שיחה</button>
+            <button class="btn btn-secondary" id="clearBtn">נקה</button>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+
+        <div class="analysis-section" id="analysisSection">
+            <div class="loading" id="loadingIndicator" style="display: none;">
+                <div class="spinner"></div>
+                <div>מנתחים את השיחה...</div>
+            </div>
+
+            <div id="resultContainer"></div>
+        </div>
+
+        <div class="history-section">
+            <h2 class="history-title">📋 שיחות קודמות</h2>
+            <div class="history-list" id="historyList">
+                <div class="history-empty">אין שיחות שנתוחו עדיין</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data for demonstration
+        const sampleAnalysis = {
+            summary: "עורך דין בתחום הנדלן דיווח שהוא משתמש כבר ב-Claude Code כ-6 חודשים והוא מספר בו מאד. דיבר בעיקר על צורך בחינוך עמיתים בחברה ועל אפשרות להרחיב את השימוש למחלקת הניתוח החוקי.",
+            deal_mentioned: true,
+            deal_value: 45000,
+            sentiment: "positive",
+            urgency: "high",
+            close_probability: 78,
+            next_action: "לשלוח דוגמה של תהליך הניתוח החוקי באמצעות Claude, וביקשתו חינוך של הצוות שלו בשבוע הבא",
+            key_quote: "אנחנו כבר בדיוק משתמשים בזה לכל החוקיות שלנו, וזה החזיק על עלות עצומה לנו",
+            topics: ["חינוך צוות", "סקלציה למחלקות נוספות", "תצפית של עלויות"],
+            red_flags: ["ממתין להיתר של ה-CTO לפני הרחבה", "צריך אישור משפטי חיצוני"]
+        };
+
+        const fileInput = document.getElementById('audioFile');
+        const emailInput = document.getElementById('emailInput');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const fileName = document.getElementById('fileName');
+        const uploadSection = document.getElementById('uploadSection');
+        const analysisSection = document.getElementById('analysisSection');
+        const resultContainer = document.getElementById('resultContainer');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const errorMessage = document.getElementById('errorMessage');
+        const historyList = document.getElementById('historyList');
+
+        let selectedFile = null;
+        let analysisHistory = [];
+
+        // Load history from localStorage
+        function loadHistory() {
+            const saved = localStorage.getItem('analysisHistory');
+            if (saved) {
+                analysisHistory = JSON.parse(saved);
+                renderHistory();
+            }
+        }
+
+        function saveHistory() {
+            localStorage.setItem('analysisHistory', JSON.stringify(analysisHistory));
+        }
+
+        function renderHistory() {
+            if (analysisHistory.length === 0) {
+                historyList.innerHTML = '<div class="history-empty">אין שיחות שנתוחו עדיין</div>';
+                return;
+            }
+
+            historyList.innerHTML = analysisHistory.map((item, index) => `
+                <div class="history-item" onclick="showHistoricalAnalysis(${index})">
+                    <div class="history-item-title">${item.summary.substring(0, 50)}...</div>
+                    <div class="history-item-meta">סיכום בתאריך ${new Date(item.timestamp).toLocaleDateString('he-IL')}</div>
+                </div>
+            `).join('');
+        }
+
+        function showHistoricalAnalysis(index) {
+            const item = analysisHistory[index];
+            analysisSection.classList.add('active');
+            resultContainer.innerHTML = renderAnalysisResult(item.data);
+            window.scrollTo({ top: resultContainer.offsetTop - 100, behavior: 'smooth' });
+        }
+
+        // File selection
+        document.querySelector('.file-input-wrapper button').addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            selectedFile = e.target.files[0];
+            if (selectedFile) {
+                fileName.textContent = `✓ ${selectedFile.name}`;
+                fileName.classList.add('has-file');
+                analyzeBtn.disabled = false;
+                errorMessage.classList.remove('show');
+            }
+        });
+
+        // Drag and drop
+        uploadSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadSection.classList.add('dragover');
+        });
+
+        uploadSection.addEventListener('dragleave', () => {
+            uploadSection.classList.remove('dragover');
+        });
+
+        uploadSection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadSection.classList.remove('dragover');
+            selectedFile = e.dataTransfer.files[0];
+            if (selectedFile && selectedFile.type.startsWith('audio/')) {
+                fileName.textContent = `✓ ${selectedFile.name}`;
+                fileName.classList.add('has-file');
+                analyzeBtn.disabled = false;
+                errorMessage.classList.remove('show');
+            }
+        });
+
+        // Analyze button
+        analyzeBtn.addEventListener('click', () => {
+            if (!emailInput.value) {
+                showError('אנא הזינו כתובת מייל');
+                return;
+            }
+            if (!selectedFile) {
+                showError('אנא בחרו קובץ אודיו');
+                return;
+            }
+
+            analyzeBtn.disabled = true;
+            loadingIndicator.style.display = 'block';
+            resultContainer.innerHTML = '';
+            errorMessage.classList.remove('show');
+
+            // Simulate analysis delay
+            setTimeout(() => {
+                loadingIndicator.style.display = 'none';
+                analysisSection.classList.add('active');
+                resultContainer.innerHTML = renderAnalysisResult(sampleAnalysis);
+
+                // Save to history
+                analysisHistory.unshift({
+                    summary: sampleAnalysis.summary,
+                    timestamp: new Date().toISOString(),
+                    data: sampleAnalysis
+                });
+                saveHistory();
+                renderHistory();
+
+                analyzeBtn.disabled = false;
+                window.scrollTo({ top: resultContainer.offsetTop - 100, behavior: 'smooth' });
+            }, 2000);
+        });
+
+        function renderAnalysisResult(data) {
+            const sentimentMap = { positive: '😊 חיובי', neutral: '😐 ניטרלי', negative: '😟 שלילי' };
+            const urgencyMap = { low: 'נמוכה', medium: 'בינונית', high: 'גבוהה' };
+
+            let html = `
+                <div class="result-card">
+                    <div class="result-header">
+                        <div class="result-title">📞 ניתוח השיחה</div>
+                        <div class="result-summary">${data.summary}</div>
+                    </div>
+
+                    <div class="metrics-grid">
+                        <div class="metric-box metric-deal">
+                            <div class="metric-label">סכום העסקה</div>
+                            <div class="metric-value">₪${data.deal_value.toLocaleString('he-IL')}</div>
+                        </div>
+                        <div class="metric-box metric-probability">
+                            <div class="metric-label">סיכוי סגירה</div>
+                            <div class="metric-value">${data.close_probability}%</div>
+                        </div>
+                        <div class="metric-box metric-sentiment-${data.sentiment}">
+                            <div class="metric-label">מצב רוח</div>
+                            <div class="metric-value">${sentimentMap[data.sentiment]}</div>
+                        </div>
+                        <div class="metric-box metric-urgency-${data.urgency}">
+                            <div class="metric-label">דחיפות</div>
+                            <div class="metric-value">${urgencyMap[data.urgency]}</div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="next-action">
+                            <div class="next-action-title">⚡ פעולה הבאה מומלצת</div>
+                            <div class="next-action-text">${data.next_action}</div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">💬 ציטוט מילולי</div>
+                        <div class="key-quote">"${data.key_quote}"</div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">🏷️ נושאים שעלו</div>
+                        <div class="topics-list">
+                            ${data.topics.map(topic => `<span class="topic-tag">${topic}</span>`).join('')}
+                        </div>
+                    </div>
+
+                    ${data.red_flags && data.red_flags.length > 0 ? `
+                        <div class="section">
+                            <div class="red-flags">
+                                <div class="red-flags-title">⚠️ דגלים אדומים</div>
+                                <ul class="red-flags-list">
+                                    ${data.red_flags.map(flag => `<li>${flag}</li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            return html;
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add('show');
+        }
+
+        clearBtn.addEventListener('click', () => {
+            selectedFile = null;
+            fileInput.value = '';
+            fileName.textContent = 'אין קובץ נבחר';
+            fileName.classList.remove('has-file');
+            analyzeBtn.disabled = true;
+            analysisSection.classList.remove('active');
+            resultContainer.innerHTML = '';
+            errorMessage.classList.remove('show');
+        });
+
+        // Initialize
+        loadHistory();
+
+        // Show sample analysis on first load for preview
+        setTimeout(() => {
+            analysisSection.classList.add('active');
+            resultContainer.innerHTML = renderAnalysisResult(sampleAnalysis);
+        }, 500);
+    </script>
+</body>
+</html>

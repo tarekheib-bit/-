@@ -1,0 +1,380 @@
+{
+  "name": "Ad Generator",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## 🎨 Use Case 3: Campaign Visual Variations\n\n**Form Trigger (concept) → LLM (4 prompts) → Split Out → Loop → Image Gen → Aggregate → Email**\n\nFlow Nodes covered: **Split Out, Loop Over Items, Aggregate**\nAI Special Nodes: **OpenAI Image Generation (GPT Image 2)**\n\n💡 Gotcha: connect the Set node BACK to the Loop! Otherwise it runs once and stops.",
+        "height": 704,
+        "width": 1680,
+        "color": 6
+      },
+      "id": "75834fe5-d450-4884-b708-4f71cf5d17ff",
+      "name": "🎨 Use Case 3: Image Variations",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-96, 48]
+    },
+    {
+      "parameters": {
+        "formTitle": "מחולל וריאציות ויזואליות",
+        "formDescription": "תארו את הקמפיין ובחרו סגנון. תקבלו 4 וריאציות במייל.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "concept",
+              "fieldType": "textarea",
+              "placeholder": "לדוגמה: יום ההולדת של החברה, חגיגה משרדית",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "style",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "מינימליסטי"
+                  },
+                  {
+                    "option": "צבעוני ויצירתי"
+                  },
+                  {
+                    "option": "מקצועי ועסקי"
+                  },
+                  {
+                    "option": "פוטוריאליסטי"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "email",
+              "fieldType": "email",
+              "placeholder": "where_to_send@example.com",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f2eaa5ec-a159-4015-9c9b-27ffa855786a",
+      "name": "🎨 Form Trigger: Concept",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [-32, 352]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Concept: {{ $json.concept }}\nVisual style direction: {{ $json.style }}\n\nGenerate the 4 production-ready ad variations now. Output JSON only.",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "ROLE: You are an elite creative director and native Israeli Hebrew copywriter producing Instagram carousel ads for Israeli audiences.\n\nGOAL: From a campaign concept and a visual style direction, produce 4 production-ready ad variations, each from a different angle, all sharing one brand identity.\n\nOUTPUT LANGUAGE: All ad copy is written in Hebrew. Brand/tool/product names stay in English (Claude, n8n, Notion, SEO). All visual_prompt strings are written in English.\n\nTHE 4 ANGLES (one variation each):\n1. \"transformation\" - bold before/after claim with concrete numbers (e.g. \"נתתי ל-X לעשות Y. זה מה שקרה ב-30 יום\").\n2. \"provocative_question\" - pattern-interrupting question or contrarian statement that stops the scroll.\n3. \"pure_typography\" - NO photography. Typography only on a flat solid background. Testimonial-style quote.\n4. \"authority_numbers\" - credibility through specific metrics (e.g. \"10 כללים\", \"1,500 לקוחות\") with photo backing.\n\nHEBREW COPY RULES (hard invariants):\n- Spoken-register Israeli Hebrew, like talking to a friend. No academic tone, no filler openers (\"בעולם של היום\", \"בעידן ה-AI\", \"המהפכה הדיגיטלית\").\n- Address the audience in plural or gender-neutral phrasing (בואו, גלו, הצטרפו, שלך). Never masculine-singular imperative, never slash or dot forms (יזם/ית, לקוחות.ות).\n- No niqqud. No em-dash or en-dash; use period, comma, colon, or hyphen (-).\n- Specific numbers + timeframes beat generic claims: at least one concrete, plausible number per variation.\n- Curiosity gap: leave an open loop the viewer must swipe or click to close.\n- headline_he: max 5 Hebrew words. subhead_he: max 8 Hebrew words. Short text renders far better inside the image; the full story lives in the carousel caption.\n- The english_keyword appears in every variation's headline or subhead. Place English brand names at the start or end of the Hebrew line, not mid-sentence, so the overlay keeps clean direction runs.\n\nVISUAL PROMPT RULES (each visual_prompt string is sent to OpenAI GPT Image 2):\nWrite one detailed English string per variation, ordered: scene, then subject, then key details, then constraints.\n1) SCENE: subject + setting in concrete photographic vocabulary.\n2) LIGHTING: explicit direction + quality (e.g. \"warm key light from left, soft fill, dark gradient backdrop\").\n3) COMPOSITION: camera angle, lens, framing, depth of field (e.g. \"medium shot, 50mm lens, shallow DoF, eye-level\"). Camera terms set the high-level look, not exact physical simulation.\n4) STYLE + REALISM: for photographic variations include the word \"photorealistic\" plus \"real photograph\" or \"professional photography\". Ask for real texture: skin pores, fabric wear, subtle imperfections. Add \"no glamorization, no heavy retouching, no plastic skin\". Describe people concretely: scale, body framing, gaze, what their hands are doing.\n5) TEXT OVERLAY (critical, exactly one block per image):\n   \"Add a TEXT OVERLAY: in the [position], render this exact Hebrew text verbatim, right-to-left, exactly once, in [font category] font, color [hex]: \\\"EXACT_HEBREW_HEADLINE\\\". Below it, smaller, in [font category] font, color [hex]: \\\"EXACT_HEBREW_SUBHEAD\\\". Render English brand names like Claude or n8n in native English Latin script. On any line that mixes Hebrew and English, keep correct bidirectional order: the Hebrew reads right-to-left while each English word or number stays left-to-right in its natural place, never mirrored, reversed, or letter-scrambled. No extra characters, no other text, no watermarks, no logos.\"\n6) FORMAT: \"Square 1:1 Instagram carousel format. High contrast 4.5:1 minimum. Sharp legible typography. Professional ad design.\"\n\nTEXT-RENDERING RULES (hard invariants):\n- The exact overlay text always sits inside double quotes, with a demand for verbatim, exactly-once rendering and no extra characters.\n- Always include the phrase \"Hebrew text right-to-left\".\n- Font CATEGORIES only (heavy bold sans-serif, refined editorial serif, light condensed sans-serif, heavy display); never specific font names.\n- Specify text position (top third / centered / lower third / upper-right corner) and hex color for every text element.\n- Keep overlay text minimal: headline and subhead only. Everything else belongs in the carousel caption, not in the image.\n- Every overlay carries the bidi directive: on any mixed Hebrew-English line, Hebrew is right-to-left and English or numeric tokens stay left-to-right in place, never mirrored, reversed, or reordered. This preserves the copy exactly; it only fixes direction.\n\nCAMPAIGN COHERENCE:\n- All 4 variations share the same primary_color, accent_color and background_mood: one brand identity, 4 angles.\n- The english_keyword (the brand/tool/product in English) appears in all 4 variations.\n- Variation 3 (\"pure_typography\"): flat solid-color background, NO subject, NO scenery, NO photography. Typography fills the frame, magazine quote aesthetic.\n\nOUTPUT: Return JSON exactly matching the schema in the example. No markdown fences, no extra commentary."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "id": "fffb7516-a4f3-4583-887e-c0de2a5ffe13",
+      "name": "🧠 LLM Chain: 4 Variations",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [192, 352]
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-5.6-sol",
+        "options": {}
+      },
+      "id": "dc76354a-96ce-4c29-bc4d-0d62757430c1",
+      "name": "OpenRouter Chat Model (Variations)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [112, 576]
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"campaign\": {\n    \"primary_color\": \"#FFD700\",\n    \"accent_color\": \"#FFFFFF\",\n    \"background_mood\": \"dark, dramatic, tech-forward\",\n    \"english_keyword\": \"Claude\"\n  },\n  \"variations\": [\n    {\n      \"angle\": \"transformation\",\n      \"headline_he\": \"נתתי ל-Claude לנהל את ה-SEO שלי\",\n      \"subhead_he\": \"זה מה שקרה ב-30 יום.\",\n      \"cta_he\": \"המשך לסליידים הבאים\",\n      \"visual_prompt\": \"SCENE: Editorial portrait of a focused man at a wooden desk, looking down at a laptop with subtle smile. LIGHTING: warm key light from left, soft fill, deep dark gradient backdrop. COMPOSITION: medium shot, 50mm lens, shallow depth of field, eye-level. STYLE: cinematic editorial photography, magazine-cover quality. Add a TEXT OVERLAY: in the lower third, centered, render Hebrew text right-to-left in heavy bold sans-serif font, color #FFD700: \\\"נתתי ל-Claude לנהל את ה-SEO שלי\\\". Render the words \\\"Claude\\\" and \\\"SEO\\\" in native English Latin script in slightly lighter shade #FFFFFF. Below it, smaller, in light sans-serif font, color #FFFFFF: \\\"זה מה שקרה ב-30 יום.\\\" Square 1:1 Instagram carousel format. High contrast 4.5:1 minimum. Sharp legible typography. Professional ad design.\",\n      \"estimated_use\": \"Carousel slide 1 — primary hook\"\n    },\n    {\n      \"angle\": \"provocative_question\",\n      \"headline_he\": \"מה אם תוותר על ה-SEO לחודש?\",\n      \"subhead_he\": \"Claude לקח את הקלאסטרים ב-3 שעות.\",\n      \"cta_he\": \"החלקה לתוצאות\",\n      \"visual_prompt\": \"SCENE: Stark high-contrast minimalist scene, single empty office chair on polished concrete floor, soft top-down spotlight casting long dramatic shadow. LIGHTING: hard top spotlight, deep ambient shadows, dark moody backdrop. COMPOSITION: wide shot, low angle, generous negative space above. STYLE: cinematic editorial photography, conceptual ad mood. Add a TEXT OVERLAY: in the top third, centered, render Hebrew text right-to-left in heavy display sans-serif font, color #FFD700: \\\"מה אם תוותר על ה-SEO לחודש?\\\". Render \\\"SEO\\\" in native English Latin script. Below it, smaller, in refined sans-serif font, color #FFFFFF: \\\"Claude לקח את הקלאסטרים ב-3 שעות.\\\" with \\\"Claude\\\" in English Latin script. Square 1:1 Instagram carousel format. High contrast 4.5:1 minimum. Sharp legible typography. Professional ad design.\",\n      \"estimated_use\": \"Carousel cover variation B\"\n    },\n    {\n      \"angle\": \"pure_typography\",\n      \"headline_he\": \"1,500 קליקים אורגנית. 28 יום. בלי שכתבתי מילה אחת.\",\n      \"subhead_he\": \"Claude עשה את כל העבודה.\",\n      \"cta_he\": \"סיפור מלא בסליידים הבאים\",\n      \"visual_prompt\": \"SCENE: Pure flat solid #0A0A0A dark background, NO subject, NO scenery, NO photography. LIGHTING: not applicable, flat solid color. COMPOSITION: edge-to-edge typography composition with generous breathing room, magazine poster layout. STYLE: minimalist editorial typography poster, premium quote aesthetic. Add a TEXT OVERLAY: centered, render Hebrew text right-to-left in heavy editorial serif font, color #FFD700: \\\"1,500 קליקים אורגנית.\\\" on first line, \\\"28 יום.\\\" on second line, \\\"בלי שכתבתי מילה אחת.\\\" on third line, with line breaks creating dramatic poster rhythm. Below in smaller refined sans-serif font, color #FFFFFF: \\\"Claude עשה את כל העבודה.\\\" with \\\"Claude\\\" rendered in native English Latin script. Square 1:1 Instagram carousel format. Very high contrast typography poster. Sharp legible typography. Professional ad design.\",\n      \"estimated_use\": \"Carousel slide 2 — pure quote\"\n    },\n    {\n      \"angle\": \"authority_numbers\",\n      \"headline_he\": \"10 פרומפטים ב-Claude שאתם חייבים\",\n      \"subhead_he\": \"המדריך המלא לאוטומציה בעברית.\",\n      \"cta_he\": \"שמור לעצמך\",\n      \"visual_prompt\": \"SCENE: Top-down warm photograph of a wooden desk with a leather notebook, vintage round glasses, espresso cup with crema, fountain pen lying diagonally. LIGHTING: natural window light from upper left, soft warm shadows. COMPOSITION: medium shot, slight tilt for editorial feel, balanced negative space upper right. STYLE: warm magazine layout, golden hour color grading, premium editorial. Add a TEXT OVERLAY: a giant 3D extruded number \\\"10\\\" in heavy bold sans-serif font color #FFD700 occupies the upper-right third of the frame, with deep warm shadow giving dimension. Beside the number, render Hebrew text right-to-left in heavy bold sans-serif font, color #FFFFFF: \\\"פרומפטים ב-Claude שאתם חייבים\\\" with \\\"Claude\\\" in native English Latin script. Below, in smaller refined sans-serif font color #FFD700: \\\"המדריך המלא לאוטומציה בעברית.\\\" Square 1:1 Instagram carousel format. High contrast 4.5:1 minimum. Sharp legible typography. Professional ad design.\",\n      \"estimated_use\": \"Carousel slide 3 — authority/numbers\"\n    }\n  ]\n}"
+      },
+      "id": "5deb14d2-95cd-4ccb-9d01-d10fc5f29c59",
+      "name": "Structured Output Parser (Variations)",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [320, 576]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output.variations",
+        "options": {}
+      },
+      "id": "6e85a34f-702b-4e6d-9a70-060cb45fd97f",
+      "name": "✂️ Split Out: Variations",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [528, 352]
+    },
+    {
+      "parameters": {
+        "batchSize": 2,
+        "options": {}
+      },
+      "id": "46124507-04ae-49de-a7d4-01ed05dab462",
+      "name": "🔁 Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [736, 352]
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-image-2-2026-04-21",
+          "mode": "list",
+          "cachedResultName": "GPT-IMAGE-2-2026-04-21"
+        },
+        "prompt": "={{ $('✂️ Split Out: Variations').item.json.visual_prompt }}",
+        "options": {
+          "size": "1024x1024"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [960, 448],
+      "id": "36da0bf6-b382-4783-b971-a5f1f3dd5e16",
+      "name": "Generate an image"
+    },
+    {
+      "parameters": {
+        "operation": "uploadFile",
+        "additionalFieldsFile": {}
+      },
+      "id": "c37f7199-1386-4bef-9c80-11f926ec8cb5",
+      "name": "☁️ Cloudinary: Upload Image",
+      "type": "n8n-nodes-cloudinary.cloudinary",
+      "typeVersion": 1,
+      "position": [1184, 448]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "visual_prompt",
+              "value": "={{ $('✂️ Split Out: Variations').item.json.visual_prompt }}",
+              "type": "string"
+            },
+            {
+              "id": "a2",
+              "name": "angle",
+              "value": "={{ $('✂️ Split Out: Variations').item.json.angle }}",
+              "type": "string"
+            },
+            {
+              "id": "a3",
+              "name": "headline_he",
+              "value": "={{ $('✂️ Split Out: Variations').item.json.headline_he }}",
+              "type": "string"
+            },
+            {
+              "id": "a4",
+              "name": "subhead_he",
+              "value": "={{ $('✂️ Split Out: Variations').item.json.subhead_he }}",
+              "type": "string"
+            },
+            {
+              "id": "a5",
+              "name": "cta_he",
+              "value": "={{ $('✂️ Split Out: Variations').item.json.cta_he }}",
+              "type": "string"
+            },
+            {
+              "id": "a6",
+              "name": "estimated_use",
+              "value": "={{ $('✂️ Split Out: Variations').item.json.estimated_use }}",
+              "type": "string"
+            },
+            {
+              "id": "a7",
+              "name": "english_keyword",
+              "value": "={{ $('🧠 LLM Chain: 4 Variations').item.json.output.campaign.english_keyword }}",
+              "type": "string"
+            },
+            {
+              "id": "a8",
+              "name": "image_url",
+              "value": "={{ $('☁️ Cloudinary: Upload Image').item.json.secure_url }}",
+              "type": "string"
+            },
+            {
+              "id": "a9",
+              "name": "public_id",
+              "value": "={{ $('☁️ Cloudinary: Upload Image').item.json.public_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "279f9868-74ae-4c77-96e2-61e9d62e2e9d",
+      "name": "📝 Set: image meta",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1408, 448]
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "variations",
+        "options": {}
+      },
+      "id": "2eed0d51-b73a-4e28-9b7f-ff08c6634552",
+      "name": "📦 Aggregate: All Variations",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [960, 256]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $('🎨 Form Trigger: Concept').first().json.email }}",
+        "subject": "=🎨 4 פרסומות מוכנות · {{ $('🎨 Form Trigger: Concept').first().json.concept.slice(0, 60) }}",
+        "message": "=<!DOCTYPE html><html dir=\"rtl\" lang=\"he\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"color-scheme\" content=\"light\"><title>4 פרסומות | Focus AI</title><style>body,table,td,a{-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}table,td{mso-table-lspace:0;mso-table-rspace:0}img{-ms-interpolation-mode:bicubic;border:0;height:auto;line-height:100%;outline:none;text-decoration:none}body{margin:0;padding:0;width:100%!important;background:#f5f5f7!important;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif}h1,h2,h3,p{margin:0}</style></head><body style=\"margin:0;padding:0;background:#f5f5f7;direction:rtl\"><table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" width=\"100%\" style=\"background:#f5f5f7\"><tr><td align=\"center\" style=\"padding:32px 16px\"><table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" width=\"640\" style=\"max-width:640px;width:100%;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08)\"><tr><td align=\"center\" style=\"padding:32px 24px 14px\"><img src=\"https://res.cloudinary.com/dfudxxzlj/image/upload/q_auto,f_auto,w_180/v1772353512/FOCUS_LOGO-02_hc0h1a.png\" width=\"150\" alt=\"Focus AI\" style=\"display:block;width:150px;height:auto\"/></td></tr><tr><td align=\"center\" style=\"padding:6px 28px 0\"><div style=\"display:inline-block;background:#ede9fe;color:#5b21b6;padding:6px 16px;border-radius:999px;font-size:13px;font-weight:700\">🎨 4 פרסומות מוכנות</div></td></tr><tr><td align=\"center\" style=\"padding:14px 28px 4px\"><h1 style=\"margin:0;font-size:24px;font-weight:800;color:#1d1d1f;line-height:1.4\">Focus AI · מחולל הפרסומות</h1></td></tr><tr><td align=\"center\" style=\"padding:0 28px 18px\"><p style=\"margin:0;font-size:15px;color:#a855f7;font-weight:600\">4 זוויות קופי · זהות מותגית אחת</p></td></tr><tr><td style=\"padding:6px 36px 0;text-align:right\"><p style=\"font-size:15px;color:#3a3a3c;line-height:1.7;margin-bottom:14px\">היי, המחולל סיים לעבוד: מהקונספט שהזנת בטופס נוצרו 4 פרסומות אינסטגרם מוכנות לפרסום, כל אחת מזווית קופירייטינג אחרת, וכולן שומרות על זהות מותגית אחת.</p></td></tr><tr><td style=\"padding:8px 36px 0\"><table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" width=\"100%\" style=\"background:#fafafa;border-radius:14px;border:1px solid #ebebf0\"><tr><td style=\"padding:18px 22px;text-align:right\"><h3 style=\"margin:0 0 10px 0;font-size:13px;font-weight:700;color:#6e6e73;letter-spacing:0.5px\">📝 קונספט</h3><p style=\"margin:0 0 14px 0;font-size:15px;color:#1d1d1f;line-height:1.5\">{{ $('🎨 Form Trigger: Concept').first().json.concept }}</p><table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr><td style=\"padding-left:8px\"><span style=\"display:inline-block;background:#ede9fe;color:#5b21b6;padding:5px 12px;border-radius:999px;font-size:12px;font-weight:700\">סגנון: {{ $('🎨 Form Trigger: Concept').first().json.style }}</span></td><td><span style=\"display:inline-block;background:#dbeafe;color:#1e40af;padding:5px 12px;border-radius:999px;font-size:12px;font-weight:700\">Brand: {{ $('🧠 LLM Chain: 4 Variations').first().json.output.campaign.english_keyword }}</span></td></tr></table></td></tr></table></td></tr><tr><td style=\"padding:24px 36px 8px\"><div style=\"border-top:2px solid #f0f0f5\"></div></td></tr><tr><td style=\"padding:8px 30px 0\"><table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">{{ (() => {  const vs = $('📦 Aggregate: All Variations').first().json.variations || [];  const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;');  const angleColors = { transformation: ['#ede9fe','#5b21b6'], provocative_question: ['#fef3c7','#92400e'], pure_typography: ['#dbeafe','#1e40af'], authority_numbers: ['#d1fae5','#166534'] };  const cell = (v) => {    if (!v) return '<div style=\"height:1px\"></div>';    const [bg, fg] = angleColors[v.angle] || ['#ede9fe', '#5b21b6'];    const angleLabel = (v.angle || '').replace(/_/g, ' ');    return `<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"background:#ffffff;border:1px solid #ebebf0;border-radius:14px;overflow:hidden\"><tr><td style=\"padding:0;line-height:0\"><img src=\"${esc(v.image_url)}\" alt=\"${esc(v.headline_he)}\" width=\"270\" style=\"display:block;width:100%;max-width:270px;height:auto;border:0\"/></td></tr><tr><td style=\"padding:14px 16px 16px;text-align:right\"><div style=\"display:inline-block;background:${bg};color:${fg};padding:4px 10px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;margin-bottom:10px\">${esc(angleLabel)}</div><div style=\"font-size:14px;font-weight:800;color:#1d1d1f;line-height:1.45;margin-bottom:6px\">${esc(v.headline_he)}</div><div style=\"font-size:12px;color:#6e6e73;line-height:1.5\">${esc(v.subhead_he)}</div></td></tr></table>`;  };  const row = (a, b) => `<tr><td width=\"50%\" valign=\"top\" style=\"padding:6px\">${cell(a)}</td><td width=\"50%\" valign=\"top\" style=\"padding:6px\">${cell(b)}</td></tr>`;  return row(vs[0], vs[1]) + row(vs[2], vs[3]);})() }}</table></td></tr><tr><td style=\"padding:18px 36px 0\"><div style=\"background:#eef2ff;border-right:4px solid #6366f1;border-radius:8px;padding:14px 18px;text-align:right\"><p style=\"margin:0;font-size:13px;color:#312e81;line-height:1.6\"><strong>⚙️ מה קרה כאן מאחורי הקלעים:</strong> מודל שפה כתב 4 קופירייטים מובנים, כל אחד בזווית אחרת (transformation / provocative question / typography / authority). Split Out פיצל אותם לפריטים, Loop העביר כל פריט למודל התמונה GPT Image 2 שרינדר את הטקסט העברי בתוך העיצוב, Cloudinary מארח את הקבצים, ו-Aggregate איחד את הכול למייל הזה. אוטומציה אחת, מקונספט לקמפיין שלם.</p></div></td></tr><tr><td style=\"padding:24px 36px 28px;text-align:right\"><p style=\"font-size:14px;color:#3a3a3c;line-height:1.7;margin-bottom:8px\">מוזמנים להוריד, לערוך, ולפרסם. הנכסים שלכם.</p><p style=\"font-size:14px;color:#3a3a3c;line-height:1.7\"><strong>צוות Focus AI</strong></p></td></tr></table><table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" width=\"640\" style=\"max-width:640px;width:100%\"><tr><td align=\"center\" style=\"padding:24px 36px 12px\"><p style=\"margin:0;font-size:13px;color:#8e8e93;line-height:1.6\">שאלות? <a href=\"mailto:office@focusai.co.il\" style=\"color:#a855f7;text-decoration:none;font-weight:600\">office@focusai.co.il</a> &middot; <a href=\"https://wa.me/972539466408\" style=\"color:#a855f7;text-decoration:none;font-weight:600\">WhatsApp</a></p></td></tr><tr><td align=\"center\" style=\"padding:14px 36px 28px\"><img src=\"https://res.cloudinary.com/dfudxxzlj/image/upload/q_auto,f_auto,w_100/v1772353512/FOCUS_LOGO-02_hc0h1a.png\" width=\"60\" alt=\"Focus AI\" style=\"display:block;width:60px;height:auto;margin:0 auto\"/><p style=\"margin-top:8px;margin-bottom:0;font-size:11px;color:#aeaeb2\">פוקוס מערכות &middot; AI Dev &middot; {{ $now.toFormat('dd/MM/yyyy HH:mm') }}</p></td></tr></table></td></tr></table></body></html>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "fab6f273-1649-477d-81a2-49992aa100cb",
+      "name": "📧 Gmail: Send Gallery",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [1184, 256]
+    }
+  ],
+  "connections": {
+    "🎨 Form Trigger: Concept": {
+      "main": [
+        [
+          {
+            "node": "🧠 LLM Chain: 4 Variations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🧠 LLM Chain: 4 Variations": {
+      "main": [
+        [
+          {
+            "node": "✂️ Split Out: Variations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model (Variations)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "🧠 LLM Chain: 4 Variations",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser (Variations)": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "🧠 LLM Chain: 4 Variations",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "✂️ Split Out: Variations": {
+      "main": [
+        [
+          {
+            "node": "🔁 Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔁 Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "📦 Aggregate: All Variations",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Generate an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate an image": {
+      "main": [
+        [
+          {
+            "node": "☁️ Cloudinary: Upload Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "☁️ Cloudinary: Upload Image": {
+      "main": [
+        [
+          {
+            "node": "📝 Set: image meta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📝 Set: image meta": {
+      "main": [
+        [
+          {
+            "node": "🔁 Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📦 Aggregate: All Variations": {
+      "main": [
+        [
+          {
+            "node": "📧 Gmail: Send Gallery",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "id": "",
+  "versionId": ""
+}

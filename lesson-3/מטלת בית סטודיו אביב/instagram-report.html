@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>דוח אינסטגרם – סטודיו אביב</title>
+<style>
+  :root{
+    --page:      #0d0d0d;
+    --surface:   #1a1a19;
+    --ink:       #ffffff;
+    --ink-2:     #c3c2b7;
+    --muted:     #898781;
+    --grid:      #2c2c2a;
+    --baseline:  #383835;
+    --border:    rgba(255,255,255,0.10);
+    --accent:    #3987e5;
+    --accent-2:  #86b6ef;
+    --font: system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  }
+  *{ box-sizing: border-box; }
+  body{
+    margin:0;
+    background: var(--page);
+    color: var(--ink-2);
+    font-family: var(--font);
+    line-height: 1.65;
+    direction: rtl;
+  }
+  .page{ max-width: 880px; margin: 0 auto; padding: 64px 24px 96px; }
+
+  .eyebrow{
+    color: var(--muted); font-size: 13px; font-weight: 600;
+    letter-spacing: .05em; text-transform: uppercase; margin: 0 0 18px;
+  }
+  h1{
+    color: var(--ink); font-size: 32px; font-weight: 700;
+    margin: 0 0 14px; letter-spacing: -.01em; line-height: 1.3;
+  }
+  .lede{ color: var(--ink-2); font-size: 17px; max-width: 620px; margin: 0 0 40px; }
+  .lede strong{ color: var(--ink); }
+
+  h2{ color: var(--ink); font-size: 22px; font-weight: 700; margin: 0 0 8px; }
+  h2 .num{ color: var(--muted); font-weight: 600; margin-left: 10px; }
+  h3{ color: var(--ink); font-size: 15px; font-weight: 700; margin: 0 0 4px; }
+  .section-lead{ color: var(--muted); font-size: 14.5px; margin: 0 0 24px; max-width: 620px; }
+  p{ margin: 0 0 14px; font-size: 15px; }
+  section{ margin-bottom: 56px; padding-top: 8px; border-top: 1px solid var(--border); }
+  section:first-of-type{ border-top: none; }
+
+  /* Support-numbers row (editorial, not boxed) */
+  .stat-row{
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px;
+    padding: 28px 0 0; border-top: 1px solid var(--border); margin-bottom: 8px;
+  }
+  .stat{ }
+  .stat .value{ color: var(--ink); font-size: 38px; font-weight: 700; line-height: 1.05; }
+  .stat .value small{ font-size: 16px; color: var(--accent-2); font-weight: 700; margin-right: 6px; }
+  .stat .label{ color: var(--muted); font-size: 13.5px; margin-top: 8px; max-width: 220px; }
+
+  /* Cards */
+  .card{
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 24px 22px 14px; margin-bottom: 18px;
+  }
+  .card .card-note{ color: var(--muted); font-size: 13px; margin-top: 8px; margin-bottom: 0; }
+  svg{ width: 100%; height: auto; display: block; }
+  .bar-value{ fill: var(--ink); font-size: 15px; font-weight: 700; font-family: var(--font); }
+  .bar-cat{ fill: var(--ink-2); font-size: 13px; font-weight: 600; font-family: var(--font); }
+  .axis-label{ fill: var(--muted); font-size: 11px; font-family: var(--font); }
+
+  /* Tables */
+  table{ width: 100%; border-collapse: collapse; }
+  thead th{
+    text-align: right; color: var(--muted); font-size: 11.5px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .03em; padding: 10px 10px; border-bottom: 1px solid var(--border);
+  }
+  tbody td{
+    padding: 12px 10px; font-size: 14px; color: var(--ink-2);
+    border-bottom: 1px solid var(--grid); font-variant-numeric: tabular-nums;
+  }
+  tbody tr:last-child td{ border-bottom: none; }
+  tbody td.rank{ color: var(--muted); font-weight: 700; }
+  tbody td.content{ color: var(--ink); }
+  tbody td.hi{ color: var(--accent-2); font-weight: 700; }
+
+  /* Ratio rows in "why" section */
+  .ratio-list{ display: flex; flex-direction: column; gap: 22px; margin-bottom: 20px; }
+  .ratio-row{ display: grid; grid-template-columns: 110px 1fr; gap: 20px; align-items: start; }
+  .ratio-row .ratio-num{ color: var(--ink); font-size: 28px; font-weight: 700; white-space: nowrap; }
+  .ratio-row .ratio-num.flat{ color: var(--ink-2); font-size: 20px; }
+  .ratio-row .ratio-body h3{ margin-bottom: 6px; }
+  .ratio-row .ratio-body p{ color: var(--ink-2); font-size: 14.5px; margin-bottom: 0; }
+
+  .callout{
+    border-right: 3px solid var(--accent); padding: 4px 18px;
+    color: var(--ink-2); font-size: 14.5px; margin: 4px 0 0;
+  }
+  .callout strong{ color: var(--ink); }
+
+  /* Recommendations */
+  .reco{
+    display: grid; grid-template-columns: 40px 1fr; gap: 16px;
+    padding: 18px 0; border-bottom: 1px solid var(--border);
+  }
+  .reco:last-child{ border-bottom: none; }
+  .reco .rank{ color: var(--accent-2); font-size: 26px; font-weight: 700; }
+  .reco h3{ font-size: 16px; margin-bottom: 6px; }
+  .reco p{ font-size: 14.5px; margin-bottom: 0; }
+  .reco .src{ display:block; margin-top:8px; color: var(--muted); font-size: 13px; }
+
+  /* Limitations */
+  .limits{ background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 22px 24px; }
+  .limits ul{ margin: 0; padding-inline-start: 20px; }
+  .limits li{ font-size: 14px; margin-bottom: 9px; color: var(--ink-2); }
+  .limits li:last-child{ margin-bottom: 0; }
+  .limits li strong{ color: var(--ink); }
+
+  footer{ color: var(--muted); font-size: 12.5px; padding-top: 24px; border-top: 1px solid var(--border); }
+
+  @media (max-width: 680px){
+    .page{ padding: 40px 18px 64px; }
+    h1{ font-size: 26px; }
+    .stat-row{ grid-template-columns: 1fr; gap: 20px; }
+    .ratio-row{ grid-template-columns: 1fr; gap: 6px; }
+    thead th:nth-child(4), tbody td:nth-child(4){ display:none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <p class="eyebrow">דוח ביצועים · אינסטגרם · סטודיו אביב · מרץ 2026</p>
+
+  <h1>Reels הם מנוע הצמיחה המרכזי שלך באינסטגרם</h1>
+  <p class="lede">הם מביאים <strong>כמעט פי 3 יותר חשיפה</strong> מכל פורמט אחר שפרסמת במרץ, ומשותפים בשיעור גבוה משמעותית. הדוח הזה מבוסס אך ורק על 10 הפוסטים שבקובץ <strong>סטטיסטיקות-instagram-מרץ.xlsx</strong>.</p>
+
+  <div class="stat-row">
+    <div class="stat">
+      <div class="value">5,660 <small>פי 2.9</small></div>
+      <div class="label">ממוצע חשיפות (Reach) לפוסט Reel — לעומת 1,930 בממוצע בכל שאר הפורמטים</div>
+    </div>
+    <div class="stat">
+      <div class="value">0.98% <small>פי 3.2</small></div>
+      <div class="label">מכל 100 אנשים שרואים Reel, כ-1 משתף אותו — לעומת 0.30% בפורמטים האחרים</div>
+    </div>
+    <div class="stat">
+      <div class="value">3 מתוך 3</div>
+      <div class="label">הפוסטים המובילים של מרץ בחשיפה — כולם Reels</div>
+    </div>
+  </div>
+
+  <section>
+    <h2><span class="num">01</span>מה עובד הכי טוב?</h2>
+    <p class="section-lead">חשיפה ממוצעת לפוסט, לפי סוג — כל 10 הפוסטים של מרץ 2026.</p>
+
+    <div class="card">
+      <svg viewBox="0 0 640 300" role="img" aria-label="ממוצע Reach לפי סוג פוסט">
+        <line x1="50" y1="20" x2="620" y2="20" stroke="var(--grid)" stroke-width="1"/>
+        <line x1="50" y1="103.3" x2="620" y2="103.3" stroke="var(--grid)" stroke-width="1"/>
+        <line x1="50" y1="186.7" x2="620" y2="186.7" stroke="var(--grid)" stroke-width="1"/>
+        <line x1="50" y1="270" x2="620" y2="270" stroke="var(--baseline)" stroke-width="1"/>
+        <text class="axis-label" x="44" y="24" text-anchor="end">6,000</text>
+        <text class="axis-label" x="44" y="107" text-anchor="end">4,000</text>
+        <text class="axis-label" x="44" y="191" text-anchor="end">2,000</text>
+        <text class="axis-label" x="44" y="274" text-anchor="end">0</text>
+
+        <g>
+          <title>Reel — ממוצע Reach: 5,660 (3 פוסטים)</title>
+          <rect x="109.25" y="34.2" width="24" height="235.8" rx="4" fill="var(--accent)"/>
+          <rect x="109.25" y="266" width="24" height="4" fill="var(--accent)"/>
+          <text class="bar-value" x="121.25" y="24" text-anchor="middle">5,660</text>
+          <text class="bar-cat" x="121.25" y="290" text-anchor="middle">Reel</text>
+        </g>
+        <g>
+          <title>Carousel — ממוצע Reach: 2,563 (3 פוסטים)</title>
+          <rect x="251.75" y="163.2" width="24" height="106.8" rx="4" fill="var(--ink-2)" opacity="0.55"/>
+          <rect x="251.75" y="266" width="24" height="4" fill="var(--ink-2)" opacity="0.55"/>
+          <text class="bar-value" x="263.75" y="153" text-anchor="middle">2,563</text>
+          <text class="bar-cat" x="263.75" y="290" text-anchor="middle">Carousel</text>
+        </g>
+        <g>
+          <title>Post — ממוצע Reach: 2,060 (2 פוסטים)</title>
+          <rect x="394.25" y="184.2" width="24" height="85.8" rx="4" fill="var(--ink-2)" opacity="0.55"/>
+          <rect x="394.25" y="266" width="24" height="4" fill="var(--ink-2)" opacity="0.55"/>
+          <text class="bar-value" x="406.25" y="174" text-anchor="middle">2,060</text>
+          <text class="bar-cat" x="406.25" y="290" text-anchor="middle">Post</text>
+        </g>
+        <g>
+          <title>Story — ממוצע Reach: 850 (2 פוסטים)</title>
+          <rect x="536.75" y="234.6" width="24" height="35.4" rx="4" fill="var(--ink-2)" opacity="0.55"/>
+          <rect x="536.75" y="266" width="24" height="4" fill="var(--ink-2)" opacity="0.55"/>
+          <text class="bar-value" x="548.75" y="224" text-anchor="middle">850</text>
+          <text class="bar-cat" x="548.75" y="290" text-anchor="middle">Story</text>
+        </g>
+      </svg>
+      <p class="card-note">Reels מסומנים בכחול כדי להבליט את הפער. שאר הפורמטים באפור.</p>
+    </div>
+
+    <h3 style="margin-top:28px; margin-bottom:10px; font-size:15px; color:var(--ink-2)">שלושת הפוסטים המובילים של מרץ</h3>
+    <table>
+      <thead>
+        <tr><th>#</th><th>תאריך</th><th>סוג</th><th>תוכן</th><th>Reach</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="rank">1</td><td>14.03</td><td>Reel</td>
+          <td class="content">טיפ ביוצרי גרין סקרין לסטוריז</td><td class="hi">6,720</td>
+        </tr>
+        <tr>
+          <td class="rank">2</td><td>26.03</td><td>Reel</td>
+          <td class="content">האור שאני מחפשת בכל חתונה</td><td class="hi">5,440</td>
+        </tr>
+        <tr>
+          <td class="rank">3</td><td>02.03</td><td>Reel</td>
+          <td class="content">סדרת לפני/אחרי עריכה - 3 חתונות</td><td class="hi">4,820</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2><span class="num">02</span>למה זה עובד?</h2>
+    <p class="section-lead">לא מספיק להסתכל על סכומים — הנה מה קורה כשמסתכלים על יחסים ושיעורים.</p>
+
+    <div class="ratio-list">
+      <div class="ratio-row">
+        <div class="ratio-num">פי 2.9</div>
+        <div class="ratio-body">
+          <h3>יותר חשיפה (Reach)</h3>
+          <p>הפער הבסיסי: Reels מגיעים בממוצע ל-5,660 חשיפות, לעומת 1,930 בממוצע בשאר הפורמטים.</p>
+        </div>
+      </div>
+      <div class="ratio-row">
+        <div class="ratio-num">פי 3.2</div>
+        <div class="ratio-body">
+          <h3>שיעור שיתופים גבוה יותר (Shares ÷ Reach)</h3>
+          <p>מבין כל מי שנחשף ל-Reel, 0.98% שיתפו אותו — לעומת 0.30% בפורמטים האחרים. זה ההבדל האמיתי ביותר: Reels לא רק מגיעים ליותר אנשים, הם גם משכנעים יותר לשתף, יחסית לכמות הצפיות.</p>
+        </div>
+      </div>
+      <div class="ratio-row">
+        <div class="ratio-num flat">≈ זהה</div>
+        <div class="ratio-body">
+          <h3>שיעור שמירות (Saves ÷ Reach) — אין הבדל אמיתי</h3>
+          <p>1.07% ב-Reels לעומת 1.07% בשאר הפורמטים. כלומר כמות השמירות הגבוהה יותר ב-Reels (60 בממוצע מול 21) נובעת בעיקר מכך שהם נחשפים ליותר אנשים — לא מכך שהם "נשמרים" ביחס גבוה יותר מפוסט רגיל.</p>
+        </div>
+      </div>
+      <div class="ratio-row">
+        <div class="ratio-num flat">8.3% / 10.1%</div>
+        <div class="ratio-body">
+          <h3>שיעור מעורבות כולל — כאן Reels דווקא לא מובילים</h3>
+          <p>(לייקים+תגובות+שיתופים+שמירות) חלקי חשיפה: 8.3% ב-Reels, לעומת 9.2% ב-Carousel ו-10.1% בפוסטים רגילים. מבין מי שכן נחשף לפוסט, הReels לא בהכרח "המרתקים ביותר" באחוזים — היתרון שלהם הוא בכמות האנשים שהם מגיעים אליהם, ובנטייה החזקה יותר לשתף אותם הלאה.</p>
+        </div>
+      </div>
+    </div>
+
+    <p class="callout">חשוב: הקובץ לא מסביר <strong>למה</strong> Reels מקבלים יותר חשיפה מלכתחילה (יכול להיות אלגוריתם של אינסטגרם, תזמון פרסום, אורך הסרטון או משהו אחר) — זה נתון שלא קיים בקבצים שסופקו, ולכן אי אפשר לקבוע אותו כעובדה.</p>
+
+    <h3 style="margin-top:32px; margin-bottom:10px; font-size:15px; color:var(--ink-2)">דפוס נוסף: בתוך ה-Reels עצמם, לא כל תוכן שווה</h3>
+    <table>
+      <thead>
+        <tr><th>תאריך</th><th>תוכן</th><th>שיעור שיתופים</th><th>שיעור שמירות</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>14.03</td><td class="content">טיפ ביוצרי גרין סקרין</td><td class="hi">1.32%</td><td>1.00%</td></tr>
+        <tr><td>26.03</td><td class="content">האור שאני מחפשת בכל חתונה</td><td>1.03%</td><td class="hi">1.34%</td></tr>
+        <tr><td>02.03</td><td class="content">סדרת לפני/אחרי עריכה</td><td>0.46%</td><td>0.85%</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:12px; font-size:14.5px">בתוך שלושת ה-Reels: הריל שכולל <strong style="color:var(--ink)">טיפ מקצועי</strong> קיבל את שיעור השיתופים הגבוה ביותר, והריל עם <strong style="color:var(--ink)">קול אישי/אמנותי</strong> קיבל את שיעור השמירות הגבוה ביותר. זה דפוס מעניין — אבל עם 3 Reels בלבד החודש, אי אפשר לקבוע אותו כמסקנה חד-משמעית, רק כמגמה ראשונית שכדאי לבדוק עוד.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">03</span>מה כדאי לעשות בהמשך?</h2>
+    <p class="section-lead">שלוש המלצות, מדורגות לפי חשיבות, מבוססות ישירות על הנתונים ועל הרעיונות שכבר כתבת לעצמך.</p>
+
+    <div class="reco">
+      <div class="rank">1</div>
+      <div>
+        <h3>המשיכי להתמקד ב-Reels, בעדיפות לתוכן טיפים / הדרכה</h3>
+        <p>ה-Reel עם שיעור השיתופים הגבוה ביותר החודש (טיפ גרין סקרין, 14.03) היה גם ה-Reach הגבוה ביותר של מרץ — 6,720. יש לך רעיון מוכן ולא-מנוצל בדיוק בסגנון הזה.</p>
+        <span class="src">מהקובץ "רעיונות-לאינסטה.docx": "טיפ ויראלי שלא ניסיתי: 3 דברים שאף צלם לא יגיד לך"</span>
+      </div>
+    </div>
+    <div class="reco">
+      <div class="rank">2</div>
+      <div>
+        <h3>תרחיבי את סדרת "האור" — הנושא שהביא את השמירות הגבוהות ביותר</h3>
+        <p>ה-Reel "האור שאני מחפשת בכל חתונה" קיבל את שיעור השמירות הגבוה ביותר החודש (1.34%). יש לך כבר רעיון כתוב להרחבה מדויקת של הנושא הזה.</p>
+        <span class="src">מהקובץ "רעיונות-לאינסטה.docx": "סדרת 3 פוסטים: אותו זוג, אותו מקום, בוקר-צהריים-ערב. לראות איך האור הופך אותם"</span>
+      </div>
+    </div>
+    <div class="reco">
+      <div class="rank">3</div>
+      <div>
+        <h3>אל תזנחי לגמרי Carousel ו-Post</h3>
+        <p>שיעור המעורבות שלהם ביחס לחשיפה (9.2% ו-10.1%) גבוה יותר מזה של Reels (8.3%) — כלומר מי שכבר נחשף אליהם מגיב להם בשיעור גבוה יותר. הם עדיין הכלי הטוב ביותר לחיזוק הקשר עם עוקבים קיימים, גם אם הם לא מביאים חשיפה חדשה בהיקף של Reels.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="limits">
+    <h2 style="font-size:18px">מה חסר בנתונים</h2>
+    <p class="section-lead" style="margin-bottom:16px">כדי שהדוח יישאר מדויק — הנה מה שלא היה בקובץ, ולכן לא נכנס לניתוח:</p>
+    <ul>
+      <li><strong>אין נתוני עוקבים</strong> — כמות עוקבים או צמיחה בעוקבים לא מופיעים בקובץ הסטטיסטיקות.</li>
+      <li><strong>חודש אחד בלבד</strong> — יש נתונים למרץ 2026 בלבד, כך שאי אפשר לדעת אם המגמה יציבה לאורך זמן.</li>
+      <li><strong>לסטוריז אין נתוני מעורבות</strong> — לייקים, תגובות, שיתופים ושמירות לא נמדדו עבורם בקובץ, רק חשיפה. לכן הם לא נכללו בהשוואות שיעורי המעורבות.</li>
+      <li><strong>סיבת השורש לחשיפה הגבוהה של Reels חסרה בקבצים שסופקו</strong> — אין נתון על אלגוריתם, תזמון פרסום או אורך סרטון שיכול להסביר את זה.</li>
+      <li><strong>אין נתוני תוצאה עסקית</strong> — קליקים לאתר, הודעות פרטיות, פניות חדשות או הזמנות צילום בפועל שמגיעות מכל פוסט לא מופיעים בקובץ, כך שאי אפשר לקשר ישירות בין ביצועי פוסט לבין הכנסה.</li>
+      <li><strong>מדגם קטן</strong> — כל קבוצת פורמט מבוססת על 2-3 פוסטים בלבד החודש, כך שאלה מגמות ראשוניות ולא מסקנות סטטיסטיות חזקות.</li>
+    </ul>
+  </section>
+
+  <footer>
+    מקור: סטודיו-אביב/שיווק-ומותג/סטטיסטיקות-instagram-מרץ.xlsx (10 פוסטים, מרץ 2026) והרעיונות שצוינו מתוך רעיונות-לאינסטה.docx. כל המספרים בדוח חושבו ישירות מתוך הקבצים שסופקו, ללא נתונים חיצוניים.
+  </footer>
+
+</div>
+</body>
+</html>

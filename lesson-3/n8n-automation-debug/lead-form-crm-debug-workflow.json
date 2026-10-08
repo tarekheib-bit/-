@@ -1,0 +1,689 @@
+{
+  "name": "Focus AI טופס לידים ל-CRM",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "השאירו פרטים ליצירת קשר",
+        "formDescription": "מלאו את הפרטים הבאים ונחזור אליכם בהקדם. הפנייה מגיעה ישירות לצוות  שלנו.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "שם מלא",
+              "fieldName": "fullName",
+              "placeholder": "לדוגמה: דניאל כהן",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "טלפון",
+              "fieldName": "phone",
+              "placeholder": "050-0000000",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "מייל לחזרה",
+              "fieldType": "email",
+              "fieldName": "email",
+              "placeholder": "you@company.com",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "פרטים נוספים",
+              "fieldType": "textarea",
+              "fieldName": "notes",
+              "placeholder": "ספרו לנו מה קרה, מה תרצו לשפר, או כל דבר אחר שחשוב שנדע..."
+            }
+          ]
+        },
+        "options": {
+          "appendAttribution": false,
+          "buttonLabel": "שליחת הפנייה",
+          "path": "focus-ai-lead",
+          "respondWithOptions": {
+            "values": {
+              "formSubmittedText": "הפנייה נשלחה בהצלחה! נחזור אליכם בהקדם."
+            }
+          },
+          "ignoreBots": true,
+          "useWorkflowTimezone": true,
+          "customCss": ":root{\n  --color-background:#F6F4FC;\n  --color-card-bg:#FFFFFF;\n  --color-card-border:#E8E4F5;\n  --color-primary:#A855F7;\n  --color-primary-shade-1:#7C3AED;\n  --font-family:\"Segoe UI\",\"Assistant\",-apple-system,Arial,sans-serif;\n  --card-border-radius:16px;\n}\n\nbody{\n  background:\n    radial-gradient(circle at 85% -10%, rgba(168,85,247,.20), transparent 48%),\n    radial-gradient(circle at 0% 110%, rgba(217,70,239,.14), transparent 42%),\n    #F6F4FC !important;\n  color:#1A1625 !important;\n  font-family:\"Segoe UI\",\"Assistant\",-apple-system,Arial,sans-serif !important;\n  direction:rtl;\n}\n\n.card, form, [class*=\"card\"]{\n  background:#FFFFFF !important;\n  border:1px solid #E8E4F5 !important;\n  border-radius:16px !important;\n  box-shadow:0 20px 50px -24px rgba(76,29,149,.28) !important;\n  direction:rtl;\n}\n\nh1, h2, [class*=\"title\"]{\n  color:#1A1625 !important;\n  font-weight:700 !important;\n  letter-spacing:-.01em;\n  text-align:right !important;\n}\n\np, [class*=\"subtitle\"], [class*=\"description\"]{\n  color:#6B6880 !important;\n  text-align:right !important;\n  line-height:1.6;\n}\n\nlabel, [class*=\"label\"], [class*=\"required\"]{\n  color:#1A1625 !important;\n  font-size:14px !important;\n  font-weight:600 !important;\n  text-align:right !important;\n  display:block;\n}\n\nlabel *, [class*=\"label\"] *, [class*=\"required\"] *{\n  color:inherit !important;\n}\n\ninput, select, textarea{\n  background:#FCFBFE !important;\n  border:1px solid #E2DEF0 !important;\n  color:#1A1625 !important;\n  border-radius:10px !important;\n  padding:12px 14px !important;\n  font-size:15px !important;\n  font-family:inherit !important;\n  direction:rtl;\n  text-align:right;\n}\n\ninput::placeholder, textarea::placeholder{ color:#A9A5B8 !important; }\n\ninput:focus, select:focus, textarea:focus{\n  outline:none !important;\n  background:#FFFFFF !important;\n  border-color:#A855F7 !important;\n  box-shadow:0 0 0 3px rgba(168,85,247,.22) !important;\n}\n\ntextarea{ min-height:110px !important; line-height:1.5; resize:vertical; }\n\nbutton, [type=\"submit\"]{\n  background:linear-gradient(135deg,#D946EF 0%,#A855F7 50%,#7C3AED 100%) !important;\n  color:#FFFFFF !important;\n  border:none !important;\n  border-radius:10px !important;\n  padding:14px 18px !important;\n  font-size:16px !important;\n  font-weight:700 !important;\n  letter-spacing:.01em;\n  width:100% !important;\n  cursor:pointer;\n  box-shadow:0 10px 26px -8px rgba(168,85,247,.65), 0 0 18px rgba(217,70,239,.30) !important;\n  transition:transform .12s ease, box-shadow .2s ease, filter .2s ease;\n}\n\nbutton:hover{\n  transform:translateY(-1px);\n  filter:brightness(1.06);\n  box-shadow:0 14px 32px -8px rgba(168,85,247,.75), 0 0 26px rgba(217,70,239,.45) !important;\n}\n\nbutton:active{ transform:translateY(0); }\n\nbutton *{ color:#FFFFFF !important; }\n"
+        }
+      },
+      "id": "a653e4e8-450c-47a8-8f04-09ef2d2e0899",
+      "name": "טופס לידים",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        368,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('הגדרות: מזהה הגיליון').first().json.sheetId }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "לידים"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "חותמת זמן",
+              "displayName": "חותמת זמן",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "שם מלא",
+              "displayName": "שם מלא",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "טלפון",
+              "displayName": "טלפון",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "אימייל",
+              "displayName": "אימייל",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "הערות",
+              "displayName": "הערות",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "מקור",
+              "displayName": "מקור",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "סטטוס",
+              "displayName": "סטטוס",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "USER_ENTERED"
+        }
+      },
+      "id": "1eacf505-5a3b-4f2a-95ad-0ef112bfb37d",
+      "name": "שמירה ל-CRM",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1136,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "[המייל שלך]",
+        "subject": "=פנייה חדשה מהטופס — {{ $(\"נרמול נתונים\").item.json.name }}",
+        "message": "=<div dir=\"rtl\" style=\"font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.7\"><h2 style=\"margin:0 0 12px\">פנייה חדשה מהטופס באתר</h2><table cellpadding=\"6\" style=\"border-collapse:collapse\"><tr><td><b>שם</b></td><td>{{ $(\"נרמול נתונים\").item.json.name }}</td></tr><tr><td><b>טלפון</b></td><td>{{ $(\"נרמול נתונים\").item.json.phoneNumber }}</td></tr><tr><td><b>אימייל</b></td><td>{{ $(\"נרמול נתונים\").item.json.email }}</td></tr><tr><td><b>פרטים</b></td><td>{{ $(\"נרמול נתונים\").item.json.notes || \"—\" }}</td></tr><tr><td><b>מקור</b></td><td>{{ $(\"נרמול נתונים\").item.json.source }}</td></tr><tr><td><b>סטטוס</b></td><td>{{ $(\"נרמול נתונים\").item.json.status }}</td></tr><tr><td><b>התקבל</b></td><td>{{ $(\"נרמול נתונים\").item.json.timestamp }}</td></tr></table><p style=\"margin-top:16px;color:#666\">השורה כבר נוספה לגיליון הלידים.</p></div>",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "Focus AI Leads"
+        }
+      },
+      "id": "34d92bd9-47bd-401c-8980-bab08918249d",
+      "name": "התראה פנימית",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1360,
+        128
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $(\"נרמול נתונים\").item.json.email }}",
+        "subject": "=קיבלנו את הפנייה שלך, {{ $(\"נרמול נתונים\").item.json.name }} — Focus AI",
+        "emailType": "html",
+        "message": "=<div dir=\"rtl\" style=\"font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.7\"><p>היי {{ $(\"נרמול נתונים\").item.json.name }},</p><p>תודה שפנית אלינו. הפנייה שלך התקבלה אצל הצוות ב-{{ $(\"נרמול נתונים\").item.json.timestamp }}, ואנחנו נחזור אליך בהקדם.</p><p><b>מה שכתבת לנו:</b><br>{{ $(\"נרמול נתונים\").item.json.notes || \"לא צורפו פרטים נוספים\" }}</p><p>ליצירת קשר חוזר רשום אצלנו המספר {{ $(\"נרמול נתונים\").item.json.phoneNumber }}. אם עולה משהו דחוף — אפשר פשוט להשיב למייל הזה.</p><p style=\"margin-top:20px\">בהצלחה,<br>צוות Focus AI</p></div>",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "Focus AI"
+        }
+      },
+      "id": "54696df5-4532-444c-88f0-847ce113f25d",
+      "name": "אוטו-רספונדר ללקוח",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1360,
+        384
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "content": "# Claude Code  דיבוג עם \n\nהאוטומציה הזאת עובדת. כמעט.\nשתלנו בה **שתי תקלות בכוונה** — והמטרה שלכם\nהיא לא לתקן אותן לבד, אלא לתקן אותן עם קלוד.\n\n### 1. זיהוי\nהריצו את הטופס ותסתכלו על **הפלט**, לא על הסטטוס.\nמה יצא בפועל, ומה היה אמור לצאת?\nביצוע ירוק לא אומר שהכל תקין.\n\n### 2. התייעצות\nתארו לקלוד את התסמין במילים שלכם, כמו לקוח שמתלונן.\nלא \"תקן את הנוד השלישי\" — אתם עדיין לא יודעים מה שבור.\nתנו לו לחקור ולהגיד לכם מה הוא מצא.\n\n### 3. תיקון\nקלוד מחובר ל-n8n דרך MCP ויכול לערוך את ה-workflow בעצמו.\nתנו לו לתקן, ואז **הריצו שוב ובדקו בעיניים**.\nלא סומכים. בודקים.\n\n---\n אל תעצרו אחרי התקלה הראשונה יש שני תקלות שמחכות",
+        "height": 824,
+        "width": 380,
+        "color": 4
+      },
+      "id": "b55a8fe4-8285-4708-8d83-bd7571eb3169",
+      "name": "Sticky Note 14b480ea",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "timestamp",
+              "type": "string",
+              "value": "={{ $now.setZone(\"Asia/Jerusalem\").toFormat(\"dd/MM/yyyy HH:mm\") }}"
+            },
+            {
+              "id": "a2",
+              "name": "name",
+              "type": "string",
+              "value": "={{ $json.fullName.trim() }}"
+            },
+            {
+              "id": "a3",
+              "name": "phoneNumber",
+              "type": "string",
+              "value": "={{ $json.phone.replace(/[^0-9+]/g, \"\") }}"
+            },
+            {
+              "id": "a4",
+              "name": "email",
+              "type": "string",
+              "value": "={{ $json.email.trim().toLowerCase() }}"
+            },
+            {
+              "id": "a6",
+              "name": "notes",
+              "type": "string",
+              "value": "={{ $json.notes || \"\" }}"
+            },
+            {
+              "id": "a7",
+              "name": "source",
+              "type": "string",
+              "value": "טופס אתר"
+            },
+            {
+              "id": "a8",
+              "name": "status",
+              "type": "string",
+              "value": "חדש"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d7fb6d65-744e-451a-8e33-b8b1a30f89df",
+      "name": "נרמול נתונים",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        752,
+        256
+      ]
+    },
+    {
+      "id": "cfg-sheet-id",
+      "name": "הגדרות: מזהה הגיליון",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        560,
+        256
+      ],
+      "notes": "הדביקו כאן את מזהה הגיליון שקיבלתם מזרימת ההתקנה שלמטה",
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": true,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cfg-1",
+              "name": "sheetId",
+              "type": "string",
+              "value": "PASTE_YOUR_SHEET_ID_HERE"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "map-to-columns",
+      "name": "מיפוי לעמודות הגיליון",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        944,
+        256
+      ],
+      "notes": "ממיר את שמות השדות לשמות העמודות בגיליון, כדי שהמיפוי ב-Google Sheets יהיה אוטומטי",
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "m1",
+              "name": "חותמת זמן",
+              "type": "string",
+              "value": "={{ $json.timestamp }}"
+            },
+            {
+              "id": "m2",
+              "name": "שם מלא",
+              "type": "string",
+              "value": "={{ $json.name }}"
+            },
+            {
+              "id": "m3",
+              "name": "טלפון",
+              "type": "string",
+              "value": "={{ $json.phoneNumber }}"
+            },
+            {
+              "id": "m4",
+              "name": "אימייל",
+              "type": "string",
+              "value": "={{ $json.email }}"
+            },
+            {
+              "id": "m5",
+              "name": "הערות",
+              "type": "string",
+              "value": "={{ $json.notes }}"
+            },
+            {
+              "id": "m6",
+              "name": "מקור",
+              "type": "string",
+              "value": "={{ $json.source }}"
+            },
+            {
+              "id": "m7",
+              "name": "סטטוס",
+              "type": "string",
+              "value": "={{ $json.status }}"
+            }
+          ]
+        },
+        "options": {
+          "dotNotation": false
+        }
+      }
+    },
+    {
+      "id": "setup-trigger",
+      "name": "התקנה: הקמת הגיליון (פעם אחת)",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        48,
+        -256
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "setup-create",
+      "name": "יצירת הגיליון (לידים)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        272,
+        -256
+      ],
+      "parameters": {
+        "resource": "spreadsheet",
+        "title": "Focus AI — טופס לידים ל-CRM",
+        "sheetsUi": {
+          "sheetValues": [
+            {
+              "title": "לידים"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "setup-seed",
+      "name": "הכנת שורת דוגמה",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        496,
+        -256
+      ],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "s1",
+              "name": "חותמת זמן",
+              "type": "string",
+              "value": "={{ $now.setZone(\"Asia/Jerusalem\").toFormat(\"dd/MM/yyyy HH:mm\") }}"
+            },
+            {
+              "id": "s2",
+              "name": "שם מלא",
+              "type": "string",
+              "value": "שורת דוגמה (אפשר למחוק)"
+            },
+            {
+              "id": "s3",
+              "name": "טלפון",
+              "type": "string",
+              "value": "0500000000"
+            },
+            {
+              "id": "s4",
+              "name": "אימייל",
+              "type": "string",
+              "value": "demo@focusai.co.il"
+            },
+            {
+              "id": "s5",
+              "name": "הערות",
+              "type": "string",
+              "value": "השורה הזאת נוצרה כדי לפתוח את הכותרות בגיליון"
+            },
+            {
+              "id": "s6",
+              "name": "מקור",
+              "type": "string",
+              "value": "התקנה"
+            },
+            {
+              "id": "s7",
+              "name": "סטטוס",
+              "type": "string",
+              "value": "דוגמה"
+            }
+          ]
+        },
+        "options": {
+          "dotNotation": false
+        }
+      }
+    },
+    {
+      "id": "setup-append",
+      "name": "שתילת שורת הדוגמה",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        720,
+        -256
+      ],
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('יצירת הגיליון (לידים)').first().json.spreadsheetId }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "לידים"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "USER_ENTERED"
+        }
+      }
+    },
+    {
+      "id": "setup-id-out",
+      "name": "המזהה של הגיליון שלכם",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        944,
+        -256
+      ],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "sid-1",
+              "name": "sheetId",
+              "type": "string",
+              "value": "={{ $('יצירת הגיליון (לידים)').first().json.spreadsheetId }}"
+            },
+            {
+              "id": "sid-2",
+              "name": "קישור לגיליון",
+              "type": "string",
+              "value": "={{ $('יצירת הגיליון (לידים)').first().json.spreadsheetUrl }}"
+            },
+            {
+              "id": "sid-3",
+              "name": "מה עכשיו",
+              "type": "string",
+              "value": "העתיקו את הערך של sheetId והדביקו אותו בצומת \"הגדרות: מזהה הגיליון\" שבתחילת הזרימה הראשית למעלה"
+            }
+          ]
+        },
+        "options": {
+          "dotNotation": false
+        }
+      }
+    },
+    {
+      "id": "sticky-setup",
+      "name": "Sticky Note setup",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -544
+      ],
+      "parameters": {
+        "content": "## התקנה חד-פעמית לפני שמתחילים\n\nהריצו את הזרימה הזאת **פעם אחת** בלחיצה על הטריגר הידני.\nהיא מקימה לכם גיליון חדש עם לשונית \"לידים\" ועם הכותרות הנכונות.\n\nבסוף הריצה, בצומת האחרון, תקבלו `sheetId` וקישור לגיליון.\nהעתיקו את ה-`sheetId` והדביקו אותו בצומת **\"הגדרות: מזהה הגיליון\"** בזרימה הראשית שלמעלה.\n\nאחרי זה הזרימה הראשית כותבת לגיליון שלכם, לא לגיליון של מישהו אחר.",
+        "height": 484,
+        "width": 1176,
+        "color": 7
+      }
+    },
+    {
+      "id": "sticky-mail",
+      "name": "Sticky Note mail",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1328,
+        -96
+      ],
+      "parameters": {
+        "content": "### למילוי, לא תקלה\n\nבצומת **התראה פנימית** החליפו את `[המייל שלך]` בכתובת שלכם.\nזה שדה שאתם ממלאים, ולא אחת משתי התקלות שמחכות לכם.",
+        "height": 196,
+        "width": 340,
+        "color": 3
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "טופס לידים": {
+      "main": [
+        [
+          {
+            "node": "הגדרות: מזהה הגיליון",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "הגדרות: מזהה הגיליון": {
+      "main": [
+        [
+          {
+            "node": "נרמול נתונים",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "נרמול נתונים": {
+      "main": [
+        [
+          {
+            "node": "מיפוי לעמודות הגיליון",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "מיפוי לעמודות הגיליון": {
+      "main": [
+        [
+          {
+            "node": "שמירה ל-CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "שמירה ל-CRM": {
+      "main": [
+        [
+          {
+            "node": "התראה פנימית",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "אוטו-רספונדר ללקוח",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "התקנה: הקמת הגיליון (פעם אחת)": {
+      "main": [
+        [
+          {
+            "node": "יצירת הגיליון (לידים)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "יצירת הגיליון (לידים)": {
+      "main": [
+        [
+          {
+            "node": "הכנת שורת דוגמה",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "הכנת שורת דוגמה": {
+      "main": [
+        [
+          {
+            "node": "שתילת שורת הדוגמה",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "שתילת שורת הדוגמה": {
+      "main": [
+        [
+          {
+            "node": "המזהה של הגיליון שלכם",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "",
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": ""
+  },
+  "nodeGroups": [],
+  "id": "",
+  "tags": []
+}

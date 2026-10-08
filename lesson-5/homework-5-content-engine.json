@@ -1,0 +1,465 @@
+{
+  "name": "Use Case 1: RSS Content Generation with Supabase (V2)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## ⚠️ Supabase Setup - SQL Query\n\nRun this SQL in Supabase SQL Editor **before** running the workflow:\n\n```sql\n-- 1. Create posts table\nCREATE TABLE IF NOT EXISTS posts (\n  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,\n  title TEXT,\n  content TEXT,\n  image_url TEXT,\n  created_at TIMESTAMPTZ DEFAULT now()\n);\n\n-- 2. Enable RLS\nALTER TABLE posts ENABLE ROW LEVEL SECURITY;\n\n-- 3. Allow insert via service key\nCREATE POLICY \"Allow insert with service key\"\n  ON posts FOR INSERT\n  TO service_role\n  WITH CHECK (true);\n\n-- 4. Allow public read\nCREATE POLICY \"Allow public read\"\n  ON posts FOR SELECT\n  TO anon\n  USING (true);\n\n-- 5. Create storage bucket\nINSERT INTO storage.buckets (id, name, public)\nVALUES ('test', 'test', true)\nON CONFLICT (id) DO NOTHING;\n\n-- 6. Allow public upload to bucket\nCREATE POLICY \"Allow public upload\"\n  ON storage.objects FOR INSERT\n  TO anon, service_role\n  WITH CHECK (bucket_id = 'test');\n\n-- 7. Allow public read from bucket\nCREATE POLICY \"Allow public read storage\"\n  ON storage.objects FOR SELECT\n  TO anon\n  USING (bucket_id = 'test');\n```\n\n**Important:** Replace YOUR_PROJECT_REF with your Supabase project URL",
+        "height": 760,
+        "width": 460,
+        "color": 1
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-1280, -208],
+      "id": "supabase-setup-note",
+      "name": "Supabase Setup SQL"
+    },
+    {
+      "parameters": {
+        "content": "## RSS Content Generation Pipeline (V2)\n\nAutomated content creation from RSS feeds with AI Creative Director and Supabase storage.\n\n**Flow:**\n1. Read RSS feeds from multiple sources (3 active + 1 disabled example)\n2. Merge all feeds into one stream\n3. Limit to last 10 items\n4. Loop over each article:\n   - Perplexity researches the topic\n   - Claude writes Hebrew WhatsApp post\n   - Creative Strategist creates visual brief + Hebrew headline\n   - Image Prompt Builder generates Gemini prompt with Hebrew text\n   - Gemini Image generates image\n   - HTTP Request uploads to Supabase S3\n   - Edit Fields prepares final data\n5. Save all posts to Supabase DB\n\n**Note:** The RSS APP node is disabled by default. It requires a paid rss.app account. Enable it after configuring your own feed URL, or use only the 3 free feeds.\n\n**Key Concepts:**\n- Merge node (4 inputs)\n- Limit node for volume control\n- Loop Over Items (SplitInBatches)\n- Creative Director pattern: one model, 3 specialized roles\n- Binary data handling\n- Supabase Storage (S3) + Database\n\n**Credentials needed:**\n- OpenRouter (Claude Opus, shared across 3 AI nodes)\n- Perplexity API\n- Google Gemini (Image generation)\n- Supabase (DB + Storage)",
+        "height": 784,
+        "width": 752,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-768, -208],
+      "id": "wf-desc-content-gen",
+      "name": "Workflow Description"
+    },
+    {
+      "parameters": {
+        "content": "## Stage 1: Data Collection\n\nRSS feeds run in parallel.\nMerge combines all into one stream.\nLimit controls volume (10 last items).",
+        "height": 792,
+        "width": 936,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [0, -208],
+      "id": "stage-1-note",
+      "name": "Stage 1 Note"
+    },
+    {
+      "parameters": {
+        "content": "## Stage 2: AI Processing Loop\n\nEach article is processed one-at-a-time:\n1. Perplexity = deep research\n2. Claude = write Hebrew WhatsApp post\n3. Claude = Creative Strategist (visual brief + Hebrew headline)\n4. Claude = Image Prompt Builder (Gemini prompt with Hebrew text)\n5. Gemini Image = generate image\n\n**One model (Claude Opus) powers 3 different roles, each with specialized prompts.**",
+        "height": 792,
+        "width": 1792,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [960, -208],
+      "id": "stage-2-note",
+      "name": "Stage 2 Note"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [64, 304],
+      "id": "6ca48631-96c4-4b5a-8dea-1f98b784dfce",
+      "name": "When clicking 'Execute workflow'"
+    },
+    {
+      "parameters": {
+        "url": "https://rss.app/rss-feed?keyword=ai%20technologies&region=IL&lang=he",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [288, 96],
+      "id": "096ca0ca-01c0-4f82-a568-c83c6aa04b69",
+      "name": "RSS APP",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "url": "https://techcrunch.com/feed/?tag=automation&format=xml",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [288, 240],
+      "id": "c9d4b88d-e75e-4043-bd4d-19bfc7e390e8",
+      "name": "TECH CHURCH RSS"
+    },
+    {
+      "parameters": {
+        "url": "https://nvidianews.nvidia.com/rss.xml",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [288, 384],
+      "id": "847e811e-e214-4a35-855e-8fa1aa72993d",
+      "name": "NVDA AI RSS"
+    },
+    {
+      "parameters": {
+        "url": "https://www.theverge.com/rss/index.xml",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [288, 528],
+      "id": "86d0e296-15c4-4236-b7ee-60befb13af37",
+      "name": "THE VERGE"
+    },
+    {
+      "parameters": {
+        "numberInputs": 4
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [512, 304],
+      "id": "eba08e7c-ca5d-491e-9e6f-f446a19bba55",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "maxItems": 10,
+        "keep": "lastItems"
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [736, 304],
+      "id": "304ac42c-347b-4154-9cc9-9e7b5a0d08ef",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "batchSize": 2,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [960, 304],
+      "id": "19e79781-cd05-445e-b71d-414689a805d5",
+      "name": "חזרה על כל כתבה בפיד"
+    },
+    {
+      "parameters": {
+        "messages": {
+          "message": [
+            {
+              "content": "=קבע מהם 2-3 המקורות הרשמיים הרלוונטיים ביותר לנושא. כנס ללינק של הכתבה ובצע מחקר מעמיק.\n\nכתוב 3 פסקאות תמציתיות (לא יותר מ-100 מילים כל אחת):\n\n1. סיכום הידיעה: מה קרה ולמה זה חשוב\n2. פרט מפתיע או עמדה רשמית של גורם מעורב\n3. תובנה פרקטית לבעלי עסקים בהקשר של AI ואוטומציה\n\nחוקים:\n- אל תמציא מידע\n- השתמש רק במקורות מאומתים\n- כתוב בעברית\n- היה תמציתי ומדויק\n\nהנושא:\nכותרת: {{ $('Limit').item.json.title }}\nתוכן: {{ $('Limit').item.json.content }}\nמקור: {{ $('Limit').item.json.link }}"
+            }
+          ]
+        },
+        "options": {},
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-base.perplexity",
+      "typeVersion": 1,
+      "position": [1184, 304],
+      "id": "c896c40b-59b6-4e99-852f-679ba6f55eb3",
+      "name": "Message a model",
+      "credentials": {
+        "perplexityApi": {
+          "id": "YOUR_PERPLEXITY_CREDENTIAL_ID",
+          "name": "Perplexity API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=כותרת: {{ $('Limit').item.json.title }}\nתוכן: {{ $('Limit').item.json.content }}\nמחקר: {{ $json.choices }}",
+        "options": {
+          "systemMessage": "=אתה קופירייטר ישראלי שכותב לקהילת Focus AI בוואטסאפ, קהילה של בעלי עסקים ויזמים.\n\nמשימה: שכתב את הכתבה כפוסט קצר ואנרגטי בעברית.\n\nסגנון:\n- כמו חבר שמעביר לך חדשות מעניינות בוואטסאפ\n- עברית יומיומית, טבעית, לא פורמלית, לא ספרותית\n- אימוג׳ים במידה, 2-4 לכל פוסט, רק כשהם מוסיפים\n- הדגשות עם *כוכביות* במשורה\n- אורך: 80-150 מילים\n\n❌ לא לכתוב ככה (קלישאות AI):\n- \"ידעתם ש...\" / \"תארו לעצמכם\" / \"העתיד כבר כאן\"\n- \"מהפכה\", \"גיים צ׳יינג׳ר\", \"עולם חדש\", \"שינוי דרמטי\"\n- פתיח עם שאלה רטורית + 3 נקודות 🔹 + סיכום כללי (= תבנית שחוקה)\n- ז׳רגון ריק: \"ממנפים\", \"מדלוורים\", \"סקיילינג\"\n\n✅ כן לכתוב ככה:\n- להתחיל מהעובדה הכי מפתיעה/מעניינת, בלי הקדמות\n- לספר מה קרה, למה זה מעניין, מה אפשר ללמוד מזה\n- להשתמש במילים פשוטות ובמשפטים קצרים\n- לגוון: לפעמים רשימה, לפעמים סיפור, לפעמים ציטוט, לפעמים השוואה\n- כל פוסט חייב לסיים עם: קישור הזמנת חברים לקבוצה: https://did.li/Focus-community\n\nדוגמאות לפוסטים טובים:\n\"\"\"\nגוגל שיחררו מודל שיודע לתכנת ולהריץ את עצמו. בלי כלים חיצוניים, בלי שרת, רץ ישירות בדפדפן.\n\nלמה זה חשוב?\n*הפער בין \"אני רוצה אפליקציה\" לבין \"יש לי אפליקציה\"* הולך ונסגר. מהר.\n\nמה שלקח צוות פיתוח שבועיים, עכשיו לוקח שיחה של 10 דקות 🔧\n\nקישור הזמנת חברים לקבוצה: https://did.li/Focus-community\n\"\"\"\n\n\"\"\"\nShopify הודיעו שלא מגייסים עובד חדש אם לא מוכיחים קודם שAI לא יכול לעשות את זה.\n\nזה לא סטארטאפ קטן, זו חברה עם 10,000 עובדים. והמסר ברור: תפקידים שAI יכול למלא? לא יתווספו.\n\n*השאלה היא לא אם AI ישנה את שוק העבודה. השאלה היא כמה מהר.*\n\nקישור הזמנת חברים לקבוצה: https://did.li/Focus-community\n\"\"\"\n\nהוראה קריטית: הפלט הוא רק הפוסט. ללא הסברים, כותרות, או טקסט נוסף."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [1408, 304],
+      "id": "ce8bdc76-c5e2-4cc1-aa43-135e9d906873",
+      "name": "כתיבת פוסטים",
+      "retryOnFail": true,
+      "maxTries": 4,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=הפוסט שנכתב לקהילה:\n{{ $json.output }}\n\nכותרת המקור: {{ $('Limit').item.json.title }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are a creative director at a top Israeli branding agency specializing in social media visuals.\n\nYour job: Analyze the WhatsApp community post and create a visual brief for a MODERN, DESIGNED image (not a stock photo).\n\nSTEP 1, ANALYZE (think internally, don't output):\n- What is the ONE core message or tension in this post?\n- What OBJECT or SCENE captures this metaphorically? (physical, tangible, surprising)\n- What Hebrew headline (2-4 words) would a real Israeli copywriter write? Not AI-sounding, punchy, colloquial, witty.\n- What design style fits: dark cinematic / bold gradient / neon minimal / warm editorial / surreal 3D?\n\nSTEP 2, OUTPUT a JSON with exactly these fields:\n{\n  \"hook\": \"the emotional tension in one sentence\",\n  \"scene\": \"the visual concept, a SPECIFIC object/scene, not abstract\",\n  \"headline_hebrew\": \"כותרת בעברית, 2-4 מילים, שפה יומיומית, לא ספרותית\",\n  \"design_style\": \"one of: dark-cinematic / neon-gradient / bold-minimal / warm-golden / surreal-3d\",\n  \"palette\": \"2-3 specific colors (e.g. deep purple, electric cyan, warm amber)\",\n  \"text_treatment\": \"how the headline integrates visually (e.g. 'large bold white with glow against dark bg' / 'embossed metallic on surface' / 'neon outline floating' / 'bold shadow on gradient')\",\n  \"composition\": \"where the text sits relative to the image (e.g. 'center-dominant with scene behind' / 'bottom-third with scene above' / 'integrated into the scene')\",\n  \"avoid\": \"what NOT to show\"\n}\n\nHEBREW HEADLINE RULES:\n- 2-4 words MAX. Shorter is better.\n- Must sound like something an Israeli would actually SAY, casual, sharp, surprising\n- ❌ Avoid: \"העתיד כבר כאן\", \"מהפכה\", \"שינוי כללי המשחק\", \"עידן חדש\"\n- ✅ Good examples: \"בלי מפתחים\", \"הבוס החדש\", \"הכסף על השולחן\", \"מי צריך צוות\"\n- Think Israeli ad campaign headline, not AI output\n\nDESIGN RULES:\n- NEVER suggest: stock photography, generic office, monitors/screens/dashboards\n- THINK: social media visual that stops the scroll, bold, designed, striking\n- Reference modern design trends: dark backgrounds with light subjects, cinematic depth of field, neon/glow accents, 3D rendered objects, bold geometric compositions\n- The text must feel DESIGNED, not pasted on top. It's part of the composition.\n- Output ONLY the JSON, nothing else"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [1632, 304],
+      "id": "31b61509-446e-4b87-a675-11fd2758d09f",
+      "name": "Creative Strategist",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an expert image prompt engineer for Gemini image generation, specializing in modern social media visuals with Hebrew typography.\n\nInput: A creative brief (JSON) for a WhatsApp community post image, and the actual post.\n\nTask: Create ONE image generation prompt that produces a DESIGNED visual (not a stock photo) with integrated Hebrew text: ״{{ $json.output.headline_hebrew }}״.\n\nPROMPT STRUCTURE (follow this order):\n1. Background/environment, use the design_style from the brief\n2. Main subject/object, the scene from the brief, photographed or 3D rendered\n3. Lighting and atmosphere, cinematic, dramatic, matching the palette\n4. Hebrew text integration, the headline as a DESIGNED typographic element\n5. Overall style reference\n\nHEBREW TEXT RULES (CRITICAL):\n- Include the EXACT Hebrew text from headline_hebrew in quotes\n- Use the text_treatment and composition from the brief\n- Always specify: \"Hebrew text rendered right-to-left (RTL)\"\n- Font: \"bold modern sans-serif font\" (not a specific font name)\n- Text must look DESIGNED, part of the composition, not pasted on\n- Add visual effects matching the design_style: glow, shadow, metallic, neon outline, embossed, etc.\n- NO additional text, watermarks, or logos\n\nDESIGN STYLE MAPPING:\n- dark-cinematic: dark moody background, single dramatic light source, deep shadows, text with subtle glow\n- neon-gradient: dark background with vibrant gradient accents (purple/cyan/magenta), neon light effects, text with neon glow\n- bold-minimal: clean dark or gradient background, one bold object, large text dominant\n- warm-golden: golden hour lighting, warm tones, rich textures, text with warm shadow\n- surreal-3d: 3D rendered objects, floating elements, depth of field, glossy surfaces, text integrated into 3D space\n\nRULES:\n- 16:9 aspect ratio, high-end social media visual\n- NO human faces, NO stock photo aesthetics\n- The image should look like a designed social media post, not a photograph with text overlay\n- Maximum 3-4 sentences\n- Output ONLY the prompt, nothing else\n\nEXAMPLE OUTPUT:\n\"Dark moody background with deep purple-to-black gradient. A golden chess king piece floating and dissolving into particles of light, dramatic rim lighting from below with amber glow, shallow depth of field. Large bold Hebrew text rendered RTL reads \\\"המלך מתפרק\\\" in white with soft purple neon glow effect, positioned center-dominant over the dark background, modern sans-serif font. 16:9 cinematic social media visual.\"\n\nPost:\n'''{{ $('כתיבת פוסטים').item.json.output }}'''\n\nBrief:\n'''{{ $json.output }}'''",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [1856, 304],
+      "id": "a1513656-5d7a-4336-9c5b-b2c556a4c868",
+      "name": "Image Prompt Builder"
+    },
+    {
+      "parameters": {
+        "model": "anthropic/claude-opus-4.6",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [1408, 528],
+      "id": "c7546af6-e0b0-466d-a831-c358227d6416",
+      "name": "anthropic/claude-opus-4.6",
+      "credentials": {
+        "openRouterApi": {
+          "id": "YOUR_OPENROUTER_CREDENTIAL_ID",
+          "name": "OpenRouter API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [1632, 528],
+      "id": "4b83ab98-d996-4800-8178-f5dc94c8a852",
+      "name": "Auto-fixing Output Parser"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"hook\": \"הרגע שבו אתה מבין שהעסק שלך עובד בלעדיך\",\n  \"scene\": \"כיסא משרדי ריק מול שולחן עם מסך לפטופ דולק, חדר חשוך, אור כחול מהמסך מאיר את החדר\",\n  \"headline_hebrew\": \"העסק לא צריך אותך\",\n  \"design_style\": \"dark-cinematic\",\n  \"palette\": \"deep navy, electric blue, soft white\",\n  \"text_treatment\": \"טקסט גדול ובולט בלבן טהור עם זוהר עדין של כחול, מונח ישירות על האזור הכהה של התמונה\",\n  \"composition\": \"הכותרת בשליש העליון, הכיסא הריק במרכז-תחתון, מבט מלמעלה קלות\",\n  \"avoid\": \"אנשים, לוגואים, טקסט באנגלית, אלמנטים עמוסים מדי, צבעים חמים\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [1632, 720],
+      "id": "6833d809-efd2-4ea3-9900-6ddd67dc740b",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3-pro-image-preview",
+          "mode": "id"
+        },
+        "prompt": "={{ $json.text }}\n\nהקפד על עברית תקינה, קריאה ובצורה המדויקת שהכותרת כתובה בה, מבלי לעשות כל שינוי בטקסט.\n\nחשוב מאוד, המילים בכותרת הן בדיוק: {{ $('Creative Strategist').item.json.output.headline_hebrew }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [2080, 304],
+      "id": "ba6eddb4-ed3f-4108-a5c2-85288531bfb6",
+      "name": "Generate an image",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "YOUR_GEMINI_CREDENTIAL_ID",
+          "name": "Google Gemini API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://YOUR_PROJECT_REF.supabase.co/storage/v1/object/test/file{{$now}}.png",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "YOUR_SUPABASE_SERVICE_KEY"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_SUPABASE_SERVICE_KEY"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [2304, 304],
+      "id": "80621bba-9145-4464-bd13-752284b0f5e8",
+      "name": "save to supabase s3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5523d85a-d638-4f3c-9c37-940ff3df03df",
+              "name": "content",
+              "value": "={{ $('כתיבת פוסטים').item.json.output }}",
+              "type": "string"
+            },
+            {
+              "id": "7886e0a2-0cfb-4541-a99b-e867c524bdc2",
+              "name": "image_url",
+              "value": "=https://YOUR_PROJECT_REF.supabase.co/storage/v1/object/public/{{ $('save to supabase s3').item.json.Key }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [2528, 304],
+      "id": "325bfb79-b810-41b6-83f5-2a3747d1c3f3",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "tableId": "posts",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "title",
+              "fieldValue": "={{ $now }}"
+            },
+            {
+              "fieldId": "content",
+              "fieldValue": "={{ $('כתיבת פוסטים').item.json.output }}"
+            },
+            {
+              "fieldId": "image_url",
+              "fieldValue": "=https://YOUR_PROJECT_REF.supabase.co/storage/v1/object/public/{{ $('save to supabase s3').item.json.Key }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1184, 80],
+      "id": "b6112d58-24a6-4bd8-985c-a7dd05c1d488",
+      "name": "שמירת הפוסטים1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "YOUR_SUPABASE_CREDENTIAL_ID",
+          "name": "Supabase API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          { "node": "RSS APP", "type": "main", "index": 0 },
+          { "node": "TECH CHURCH RSS", "type": "main", "index": 0 },
+          { "node": "NVDA AI RSS", "type": "main", "index": 0 },
+          { "node": "THE VERGE", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "RSS APP": {
+      "main": [[{ "node": "Merge", "type": "main", "index": 0 }]]
+    },
+    "TECH CHURCH RSS": {
+      "main": [[{ "node": "Merge", "type": "main", "index": 1 }]]
+    },
+    "NVDA AI RSS": {
+      "main": [[{ "node": "Merge", "type": "main", "index": 2 }]]
+    },
+    "THE VERGE": {
+      "main": [[{ "node": "Merge", "type": "main", "index": 3 }]]
+    },
+    "Merge": {
+      "main": [[{ "node": "Limit", "type": "main", "index": 0 }]]
+    },
+    "Limit": {
+      "main": [[{ "node": "חזרה על כל כתבה בפיד", "type": "main", "index": 0 }]]
+    },
+    "חזרה על כל כתבה בפיד": {
+      "main": [
+        [{ "node": "שמירת הפוסטים1", "type": "main", "index": 0 }],
+        [{ "node": "Message a model", "type": "main", "index": 0 }]
+      ]
+    },
+    "Message a model": {
+      "main": [[{ "node": "כתיבת פוסטים", "type": "main", "index": 0 }]]
+    },
+    "כתיבת פוסטים": {
+      "main": [[{ "node": "Creative Strategist", "type": "main", "index": 0 }]]
+    },
+    "Creative Strategist": {
+      "main": [[{ "node": "Image Prompt Builder", "type": "main", "index": 0 }]]
+    },
+    "Image Prompt Builder": {
+      "main": [[{ "node": "Generate an image", "type": "main", "index": 0 }]]
+    },
+    "Generate an image": {
+      "main": [[{ "node": "save to supabase s3", "type": "main", "index": 0 }]]
+    },
+    "save to supabase s3": {
+      "main": [[{ "node": "Edit Fields", "type": "main", "index": 0 }]]
+    },
+    "Edit Fields": {
+      "main": [[{ "node": "חזרה על כל כתבה בפיד", "type": "main", "index": 0 }]]
+    },
+    "anthropic/claude-opus-4.6": {
+      "ai_languageModel": [
+        [
+          { "node": "כתיבת פוסטים", "type": "ai_languageModel", "index": 0 },
+          {
+            "node": "Creative Strategist",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Image Prompt Builder",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-fixing Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Creative Strategist",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": "lesson-8-example"
+  }
+}

@@ -1,0 +1,614 @@
+{
+  "name": "מענה אוטומטי במייל - Focus AI",
+  "nodes": [
+    {
+      "id": "d29a6361-54d0-46e2-a6fe-f891ab5aa22a",
+      "name": "התקנה: הקמת הגיליון (פעם אחת)",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-460, -420],
+      "parameters": {}
+    },
+    {
+      "id": "60bc8e10-74ac-4695-b624-0ab1bf1c9d25",
+      "name": "יצירת הגיליון (FAQ + לוג)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [-220, -420],
+      "parameters": {
+        "resource": "spreadsheet",
+        "operation": "create",
+        "title": "מענה אוטומטי במייל - נתונים",
+        "sheetsUi": {
+          "sheetValues": [
+            {
+              "title": "FAQ_Context"
+            },
+            {
+              "title": "Enquiry_Log"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "a1f52c60-11aa-4f2e-9b01-000000000001",
+      "name": "הכנת שורת דוגמה ל-FAQ",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-60, -420],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "seed-1",
+              "name": "Context",
+              "value": "דוגמה (מחקו והחליפו בתוכן שלכם): משלוחים מגיעים תוך 3-5 ימי עסקים. משלוח חינם בהזמנות מעל 200 ש\"ח.",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "193db680-2305-4253-964c-b7aa3f5f096f",
+      "name": "שתילת דוגמת FAQ",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [140, -420],
+      "parameters": {
+        "resource": "sheet",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('יצירת הגיליון (FAQ + לוג)').first().json.spreadsheetId }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "FAQ_Context"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "schema": [
+            {
+              "id": "Context",
+              "displayName": "Context",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "9b637008-8309-450b-ac9d-68b186030be9",
+      "name": "המזהה של הגיליון שלכם",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [340, -420],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "sid-1",
+              "name": "sheetId",
+              "value": "={{ $('יצירת הגיליון (FAQ + לוג)').item.json.spreadsheetId }}",
+              "type": "string"
+            },
+            {
+              "id": "sid-2",
+              "name": "קישור לגיליון",
+              "value": "={{ $('יצירת הגיליון (FAQ + לוג)').item.json.spreadsheetUrl }}",
+              "type": "string"
+            },
+            {
+              "id": "sid-3",
+              "name": "מה עכשיו",
+              "value": "העתיקו את הערך של sheetId והדביקו אותו בנוד \"הגדרות: מזהה הגיליון\" שבתחילת הזרימה הראשית",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "74042bc5-e98d-4841-a725-3f3be769006e",
+      "name": "קבל מיילים נכנסים מג׳ימייל",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [-460, 0],
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {},
+        "options": {}
+      }
+    },
+    {
+      "id": "99638f05-79cd-4b93-a4be-8689a5102e5a",
+      "name": "הגדרות: מזהה הגיליון",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-220, 0],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": true,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cfg-1",
+              "name": "sheetId",
+              "value": "PASTE_YOUR_SHEET_ID_HERE",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "6f7de517-a273-4af2-a01c-7eb038e4e124",
+      "name": "סינון לפי שאלה",
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "typeVersion": 1.1,
+      "position": [20, 0],
+      "parameters": {
+        "inputText": "={{ $json.text }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "Inquiry",
+              "description": "The message is asking a question, requesting information, or seeking help — such as product details, pricing, support, or usage instructions."
+            },
+            {
+              "category": "Not Inquiry",
+              "description": "The message is not asking for anything. It could be a newsletter, promotion, auto-reply, confirmation, or unrelated content with no actionable question."
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "34577e73-8de9-44f0-bc89-26a50ea1e14a",
+      "name": "OpenRouter Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [340, 260],
+      "parameters": {
+        "model": "openai/gpt-4.1-mini",
+        "options": {}
+      }
+    },
+    {
+      "id": "e1909f7d-e51e-487a-962c-f16f03368cd3",
+      "name": "יצירת תוכן לטיוטה למענה למייל",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [340, 0],
+      "parameters": {
+        "promptType": "define",
+        "text": "=### INPUTS\n**User Full Name**\n{{ $json.from.value[0].name }}\n\n**User Enquiry (email content):**\n{{ $json.text }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an AI email assistant that helps respond to customer enquiries.\n\nYou are given:\n- A user enquiry (email content)\n- A list of known FAQ context entries from a Google Sheet\n\nYour job is to:\n1. Carefully read the user's enquiry and identify all individual questions asked.\n2. Check if any of the context entries from the \"Google Sheets Context Retrieval Tool\" match any of the questions.\n3. Compose ONE complete, friendly, and professional reply in hebrew only (RTL compatible) that:\n   - Answers all the questions that have matching context entries using ONLY the information provided in the context.\n   - Politely informs the user that for any unanswered questions, the support team will follow up shortly.\n4. DO NOT make up answers or assume information.\n5. Always include a friendly closing sentence:\n   \"אם יש לך שאלות נוספות, מוזמן פשוט להשיב למייל הזה.\"\n\nImportant:\n- Only use information from the FAQ context.\n- Keep your tone professional, friendly, and clear.\n- Make sure the reply is consolidated into a SINGLE email covering all matched and unmatched questions.\n\n---\n\n### EXAMPLES\n\n**Example Context:**\n- \"התמחור שלנו מתחיל ב־990 ₪ לחודש.\"\n- \"אנו מציעים תקופת ניסיון חינם ל־14 יום.\"\n- \"ניתן לבקש החזר בתוך 30 יום מהרכישה.\"\n\n**Example Enquiry:**\n\"היי, רציתי לדעת אם אפשר לקבל החזר על הרכישה שלי ומה המחירים שלכם?\"\n\n**Expected Output (in JSON format):**\n\n```json\n{\n  \"respond\": \"שלום [שם הלקוח],\\nתודה שפנית אלינו.\\nניתן לבקש החזר בתוך 30 יום מהרכישה.\\nהתמחור שלנו מתחיל ב־990 ₪ לחודש.\\nעבור שאלות נוספות שלא נענו כאן, צוות התמיכה שלנו יחזור אליך בהקדם.\\nאם יש לך שאלות נוספות, מוזמן פשוט להשיב למייל הזה.\"\n}\n```\n\nהוראות לחתימת המייל:\nנא לסיים כל מייל עם החתימה שלך (לדוגמה: ״בברכה, [שם]״)"
+        }
+      }
+    },
+    {
+      "id": "03ff302e-b644-4e1b-ab48-af747c569005",
+      "name": "Google Sheets Context Retrieval Tool",
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [540, 260],
+      "parameters": {
+        "resource": "sheet",
+        "operation": "read",
+        "descriptionType": "manual",
+        "toolDescription": "Google Sheet Context Retrieval Tool\nGet FAQ context entries from the business knowledge Google Sheet",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('הגדרות: מזהה הגיליון').first().json.sheetId }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "FAQ_Context"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "fbb0dcad-e22d-46b6-a353-637a04bddcc4",
+      "name": "Structured Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [760, 260],
+      "parameters": {
+        "schemaType": "fromJson",
+        "jsonSchemaExample": "{\n  \"respond\": \"Hi!\\nThank you for reaching out.\\nRefunds can be requested within 30 days of purchase.\\nOur pricing starts at $99/month.\\nIf you have more questions, feel free to reply to this email.\"\n}"
+      }
+    },
+    {
+      "id": "f23980bd-a0fa-4e23-8b09-f5b1f7a3768d",
+      "name": "צור טיוטת מענה",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [660, 0],
+      "parameters": {
+        "resource": "draft",
+        "operation": "create",
+        "subject": "תודה שפנית אלינו, הנה תשובה לשאלתך",
+        "message": "={{ $json.output.respond }}",
+        "options": {
+          "threadId": "={{ $('קבל מיילים נכנסים מג׳ימייל').item.json.id }}",
+          "sendTo": "={{ $('קבל מיילים נכנסים מג׳ימייל').item.json.from.value[0].address }}"
+        }
+      }
+    },
+    {
+      "id": "64d5ab12-c357-4bf6-9529-b4d09e091ccb",
+      "name": "בניית שורת לוג",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [880, 0],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "log-1",
+              "name": "Timestamp",
+              "value": "={{ $now }}",
+              "type": "string"
+            },
+            {
+              "id": "log-2",
+              "name": "Sender Email",
+              "value": "={{ $('קבל מיילים נכנסים מג׳ימייל').item.json.from.value[0].address }}",
+              "type": "string"
+            },
+            {
+              "id": "log-3",
+              "name": "Subject",
+              "value": "={{ $('קבל מיילים נכנסים מג׳ימייל').item.json.subject }}",
+              "type": "string"
+            },
+            {
+              "id": "log-4",
+              "name": "Original Message",
+              "value": "={{ $('קבל מיילים נכנסים מג׳ימייל').item.json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "log-5",
+              "name": "AI Response",
+              "value": "={{ $('יצירת תוכן לטיוטה למענה למייל').item.json.output.respond }}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "2eea589d-0851-4947-82dd-15020608348f",
+      "name": "תיוק נתונים (Logger)",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [1100, 0],
+      "parameters": {
+        "resource": "sheet",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('הגדרות: מזהה הגיליון').first().json.sheetId }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Enquiry_Log"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Sender Email",
+              "displayName": "Sender Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "Subject",
+              "displayName": "Subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "Original Message",
+              "displayName": "Original Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            },
+            {
+              "id": "AI Response",
+              "displayName": "AI Response",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "15fbc762-d143-4744-b932-72879e8e84e2",
+      "name": "Sticky Note - התקנה",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-510, -470],
+      "parameters": {
+        "content": "## 🛠️ התקנה חד-פעמית: הקמת הגיליון\n\n1. חברו את ה-credential של Google Sheets לשני הנודים כאן\n2. לחצו על הנוד \"יצירת הגיליון\" ואז על Execute step\n3. פתחו את הנוד \"המזהה של הגיליון שלכם\" והעתיקו את הערך של sheetId\n4. הדביקו אותו בנוד \"הגדרות: מזהה הגיליון\" בזרימה הראשית (במקום PASTE_YOUR_SHEET_ID_HERE)\n\n⚠️ מריצים פעם אחת בלבד. הרצה נוספת תיצור גיליון חדש נוסף ב-Drive.",
+        "color": 3,
+        "width": 1020,
+        "height": 200
+      }
+    },
+    {
+      "id": "1d039738-9b09-4650-b235-ccecc035492b",
+      "name": "Sticky Note - סט-אפ",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-780, 200],
+      "parameters": {
+        "content": "## סט-אפ נדרש\n\n**פרטי התחברות (Credentials):**\n• Gmail\n• Google Sheets\n• OpenRouter (עם קרדיט בחשבון)\n\n**המודל:** openai/gpt-4.1-mini\nעלות של פחות מסנט למייל. דורש קרדיט ב-OpenRouter ($5 מספיקים להתחלה).\n\n**מבנה הנתונים (נוצר אוטומטית בהתקנה):**\nגיליון 1: \"FAQ_Context\", עמודה A: Context\nגיליון 2: \"Enquiry_Log\", עמודות: Timestamp, Sender Email, Subject, Original Message, AI Response",
+        "color": 4,
+        "width": 300,
+        "height": 400
+      }
+    },
+    {
+      "id": "2c6fdf8b-8741-4ebc-9345-aaef948fca38",
+      "name": "Sticky Note - סוכן",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [290, -50],
+      "parameters": {
+        "content": "🤖 קורא את המייל ויוצר מענה בהתאם למאגר המידע",
+        "color": 4,
+        "width": 300,
+        "height": 200
+      }
+    },
+    {
+      "id": "8c8f15e1-cd78-488c-861f-40c679946e3e",
+      "name": "Sticky Note - תיעוד",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [830, -50],
+      "parameters": {
+        "content": "✏️ תיעוד כל פעילות של המערכת",
+        "color": 4,
+        "width": 520,
+        "height": 200
+      }
+    },
+    {
+      "id": "f26360f6-3da3-48a2-b8af-609c5213978f",
+      "name": "Sticky Note - סקירה",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [1180, 200],
+      "parameters": {
+        "content": "## 📋 סקירת הוורקפלואו\n\nהתקנה (פעם אחת): 🛠️ הקמת גיליון הנתונים והדבקת המזהה בנוד ההגדרות\n\nשלב 1: 📧 טריגר ג׳ימייל מנטר את תיבת הדואר הנכנס\n\nשלב 2: 🤖 הסוכן מסווג את האימייל כפנייה אמיתית מול ספאם/ניוזלטר\n\nשלב 3: 🔍 הסוכן מחפש תשובות במאגר ה-FAQ שבגיליון\n\nשלב 4: ✍️ הסוכן מייצר טיוטת תשובה מקצועית מבוססת ה-FAQ בלבד\n\nשלב 5: 📑 הטיוטה נשמרת בג׳ימייל על השרשור הקיים, שום דבר לא נשלח אוטומטית\n\nשלב 6: 📝 האינטראקציה נרשמת בגיליון ה-Enquiry_Log",
+        "color": 5,
+        "width": 380,
+        "height": 440
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "התקנה: הקמת הגיליון (פעם אחת)": {
+      "main": [
+        [
+          {
+            "node": "יצירת הגיליון (FAQ + לוג)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "יצירת הגיליון (FAQ + לוג)": {
+      "main": [
+        [
+          {
+            "node": "הכנת שורת דוגמה ל-FAQ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "הכנת שורת דוגמה ל-FAQ": {
+      "main": [
+        [
+          {
+            "node": "שתילת דוגמת FAQ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "שתילת דוגמת FAQ": {
+      "main": [
+        [
+          {
+            "node": "המזהה של הגיליון שלכם",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "קבל מיילים נכנסים מג׳ימייל": {
+      "main": [
+        [
+          {
+            "node": "הגדרות: מזהה הגיליון",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "הגדרות: מזהה הגיליון": {
+      "main": [
+        [
+          {
+            "node": "סינון לפי שאלה",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "סינון לפי שאלה": {
+      "main": [
+        [
+          {
+            "node": "יצירת תוכן לטיוטה למענה למייל",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "סינון לפי שאלה",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "יצירת תוכן לטיוטה למענה למייל",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets Context Retrieval Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "יצירת תוכן לטיוטה למענה למייל",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "יצירת תוכן לטיוטה למענה למייל",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "יצירת תוכן לטיוטה למענה למייל": {
+      "main": [
+        [
+          {
+            "node": "צור טיוטת מענה",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "צור טיוטת מענה": {
+      "main": [
+        [
+          {
+            "node": "בניית שורת לוג",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "בניית שורת לוג": {
+      "main": [
+        [
+          {
+            "node": "תיוק נתונים (Logger)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "",
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": ""
+  },
+  "id": "",
+  "tags": []
+}

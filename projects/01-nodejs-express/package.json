@@ -1,0 +1,28 @@
+{
+  "name": "cloudinary-nodejs-app",
+  "version": "1.0.0",
+  "description": "Cloudinary integration with Node.js/Express",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "keywords": [
+    "cloudinary",
+    "express",
+    "image",
+    "upload"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cloudinary": "^1.40.0",
+    "express": "^4.18.2",
+    "express-fileupload": "^1.5.0",
+    "dotenv": "^16.3.1",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

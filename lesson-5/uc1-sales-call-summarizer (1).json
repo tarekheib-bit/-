@@ -1,0 +1,473 @@
+{
+  "name": "Sales Call Summarizer",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## 🎯 Use Case 1: Sales Call Summarizer\n\n**Form Trigger (audio) → ⚙️ Config → OpenAI Audio (transcribe) → LLM Chain (structured JSON) → IF → Sheets (Deals / All Calls) + Gmail**\n\nFlow Nodes covered: **IF**\nAI Special Nodes: **OpenAI Audio (Transcribe)**\n\n💡 Gotcha: the binary property name = the Form field label (not `data`).\n💡 DRY: the spreadsheet URL lives in one ⚙️ Config node; both Sheets nodes pull it via expression. Tabs are located by name.",
+        "height": 700,
+        "width": 1760,
+        "color": 4
+      },
+      "id": "a92b8411-e106-45b1-8f81-e283c88ada02",
+      "name": "📞 Use Case 1: Sales Call Summarizer",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-112, 48]
+    },
+    {
+      "parameters": {
+        "formTitle": "העלאת שיחת מכירה",
+        "formDescription": "העלו קובץ אודיו של שיחת מכירה (mp3/m4a/wav, עד 25MB).",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "audio",
+              "fieldType": "file",
+              "multipleFiles": false,
+              "acceptFileTypes": ".mp3,.m4a,.wav",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "email",
+              "fieldType": "email",
+              "placeholder": "where_to_send@example.com",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a6c835ba-19d1-4a57-848b-66ee9193d15d",
+      "name": "📞 Form Trigger: Sales Call",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [-48, 352]
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "binaryPropertyName": "audio",
+        "options": {
+          "language": "he"
+        }
+      },
+      "id": "be9efacf-ae00-48e0-a94f-32d7af897d5e",
+      "name": "🎙️ OpenAI: Transcribe Call",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.2,
+      "position": [368, 352]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=שיחת המכירה הבאה הוקלטה ותומללה. הפיקו ממנה JSON תקין במבנה המוגדר ב-Output Parser.\n\nתמלול:\n{{ $json.text }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "אתה אנליטיקאי מכירות בכיר עם עיניים חדות. אתה מקבל תמלול שיחת מכירה בעברית ומפיק ממנו ניתוח עומק במבנה JSON.\n\nהחזר JSON תקין בלבד, ללא טקסט מסביב, עם השדות הבאים:\n- summary: 2-3 משפטים על מה דובר בשיחה\n- deal_mentioned: boolean — האם הוזכרה בכוונה כלשהי לסגור עסקה?\n- deal_value: מספר בש\"ח (או null אם לא הוזכר)\n- sentiment: \"positive\" / \"neutral\" / \"negative\" — מצב הרוח הכללי של הלקוח\n- urgency: \"low\" / \"medium\" / \"high\" — דחיפות הפולואפ\n- close_probability: מספר 0-100 — האומדן שלך לסיכויי סגירה (בהתבסס על אינדיקטורים מילוליים בשיחה)\n- next_action: משפט אחד קצר ומדויק — מה לעשות בצעד הבא\n- key_quote: ציטוט מילולי אחד מהשיחה (לא פרפראזה!) שמייצג את הרגע המכריע\n- topics: מערך של 2-4 תגיות נושאים שעלו (לדוגמה: [\"מחיר\", \"תמיכה טכנית\", \"מתחרים\"])\n- red_flags: מערך של אזהרות אם יש (לדוגמה: [\"הלקוח ציין מתחרה זול יותר\", \"אין הסכמה של מקבל ההחלטות\"]). מערך ריק אם הכל טוב.\n\nהערכת close_probability: היה כן, לא לנפח. אינדיקטורים חיוביים: שאלות תפעוליות, הסכמה למחיר, דדליין מצידו. שליליים: היסוסים, השוואת מתחרים, \"אצטרך לחשוב\"."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "id": "5602f268-6522-4f21-86e2-445d359bf981",
+      "name": "🧠 LLM Chain: Call Analysis",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [576, 352]
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"summary\": \"הלקוח, עורך דין שמתעניין ב-Claude Code, ביקש פגישה לסגירה אבל היסס על המחיר\",\n  \"deal_mentioned\": true,\n  \"deal_value\": 3690,\n  \"sentiment\": \"positive\",\n  \"urgency\": \"high\",\n  \"close_probability\": 72,\n  \"next_action\": \"לחזור עם הצעה כתובה ומועד פגישה תוך 24 שעות\",\n  \"key_quote\": \"בעיקרון אני מוכן לסגור היום, אבל המחיר קצת גבוה ממה שתכננתי\",\n  \"topics\": [\n    \"מחיר\",\n    \"סגירה מיידית\",\n    \"השוואה למתחרים\"\n  ],\n  \"red_flags\": [\n    \"הלקוח הזכיר שראה אופציה זולה יותר\",\n    \"צריך אישור משותף עסקי\"\n  ]\n}"
+      },
+      "id": "375fcbe9-0a83-4b78-9303-ae949eaa4a28",
+      "name": "Structured Output Parser (Sales)",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [752, 560]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "deal-mentioned-condition",
+              "leftValue": "={{ $json.deal_mentioned }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "03097907-db2a-46b9-8290-0715211eec11",
+      "name": "🔀 IF: Deal Mentioned?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [1072, 352]
+    },
+    {
+      "parameters": {
+        "model": "anthropic/claude-opus-4.8-fast",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [560, 560],
+      "id": "45de9a48-8979-4b1f-a1c8-980497d23997",
+      "name": "OpenRouter Chat Model"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $('📞 Form Trigger: Sales Call').first().json.email }}",
+        "subject": "=💼 עסקה {{ $('🧠 LLM Chain: Call Analysis').item.json.output.urgency === 'high' ? '🔥 דחופה' : '' }} | ₪{{ $('🧠 LLM Chain: Call Analysis').item.json.output.deal_value }} | סגירה {{ $('🧠 LLM Chain: Call Analysis').item.json.output.close_probability }}%",
+        "message": "=<!DOCTYPE html><html dir=\"rtl\" lang=\"he\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"color-scheme\" content=\"light\"><title>ניתוח שיחת מכירה | Focus AI</title><style>body,table,td,a{-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}table,td{mso-table-lspace:0;mso-table-rspace:0}img{-ms-interpolation-mode:bicubic;border:0;height:auto;line-height:100%;outline:none;text-decoration:none}body{margin:0;padding:0;width:100%!important;background:#f5f5f7!important;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif}h1,h2,h3,p{margin:0}</style></head><body style=\"margin:0;padding:0;background:#f5f5f7;direction:rtl\"><table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" width=\"100%\" style=\"background:#f5f5f7\"><tr><td align=\"center\" style=\"padding:32px 16px\"><table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" width=\"640\" style=\"max-width:640px;width:100%;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08)\"><tr><td align=\"center\" style=\"padding:32px 24px 14px\"><img src=\"https://res.cloudinary.com/dfudxxzlj/image/upload/q_auto,f_auto,w_180/v1772353512/FOCUS_LOGO-02_hc0h1a.png\" width=\"150\" alt=\"Focus AI\" style=\"display:block;width:150px;height:auto\"/></td></tr><tr><td align=\"center\" style=\"padding:6px 28px 0\"><div style=\"display:inline-block;background:#ede9fe;color:#5b21b6;padding:6px 16px;border-radius:999px;font-size:13px;font-weight:700\">📞 ניתוח שיחת מכירה</div></td></tr><tr><td align=\"center\" style=\"padding:14px 28px 4px\"><h1 style=\"margin:0;font-size:24px;font-weight:800;color:#1d1d1f;line-height:1.4\">Focus AI · מסכם שיחות מכירה</h1></td></tr><tr><td align=\"center\" style=\"padding:0 28px 18px\"><p style=\"margin:0;font-size:15px;color:#a855f7;font-weight:600\">💼 עסקה הוזכרה בשיחה</p></td></tr><tr><td style=\"padding:6px 36px 0\"><table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" width=\"100%\" style=\"background:#fafafa;border-radius:14px;border:1px solid #ebebf0\"><tr><td style=\"padding:20px 22px;text-align:center\"><div style=\"font-size:12px;color:#6e6e73;letter-spacing:0.5px;margin-bottom:4px\">סכום העסקה המשוער</div><div style=\"font-size:40px;font-weight:800;color:#1d1d1f\">₪{{ $('🧠 LLM Chain: Call Analysis').item.json.output.deal_value }}</div></td></tr></table></td></tr><tr><td style=\"padding:14px 36px 0\"><table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" width=\"100%\"><tr><td width=\"33%\" valign=\"top\" style=\"padding:0 4px\"><div style=\"background:{{ ({low:'#dcfce7',medium:'#fef3c7',high:'#fee2e2'})[$('🧠 LLM Chain: Call Analysis').item.json.output.urgency] }};border-radius:12px;padding:14px 8px;text-align:center\"><div style=\"font-size:11px;color:#6b7280;margin-bottom:4px\">דחיפות</div><div style=\"font-size:16px;font-weight:700;color:{{ ({low:'#15803d',medium:'#92400e',high:'#991b1b'})[$('🧠 LLM Chain: Call Analysis').item.json.output.urgency] }}\">{{ ({low:'נמוכה',medium:'בינונית',high:'גבוהה'})[$('🧠 LLM Chain: Call Analysis').item.json.output.urgency] }}</div></div></td><td width=\"34%\" valign=\"top\" style=\"padding:0 4px\"><div style=\"background:#dbeafe;border-radius:12px;padding:14px 8px;text-align:center\"><div style=\"font-size:11px;color:#1e40af;margin-bottom:4px\">סיכוי סגירה</div><div style=\"font-size:22px;font-weight:800;color:#1e40af\">{{ $('🧠 LLM Chain: Call Analysis').item.json.output.close_probability }}%</div></div></td><td width=\"33%\" valign=\"top\" style=\"padding:0 4px\"><div style=\"background:#f3e8ff;border-radius:12px;padding:14px 8px;text-align:center\"><div style=\"font-size:11px;color:#6b21a8;margin-bottom:4px\">מצב רוח</div><div style=\"font-size:15px;font-weight:700;color:#6b21a8\">{{ ({positive:'😊 חיובי',neutral:'😐 ניטרלי',negative:'😟 שלילי'})[$('🧠 LLM Chain: Call Analysis').item.json.output.sentiment] }}</div></div></td></tr></table></td></tr><tr><td style=\"padding:22px 36px 0;text-align:right\"><h3 style=\"margin:0 0 8px 0;font-size:13px;font-weight:700;color:#6e6e73;letter-spacing:0.5px\">📋 סיכום השיחה</h3><p style=\"margin:0;font-size:15px;line-height:1.7;color:#1d1d1f\">{{ $('🧠 LLM Chain: Call Analysis').item.json.output.summary }}</p></td></tr><tr><td style=\"padding:16px 36px 0\"><div style=\"background:#faf5ff;border-right:4px solid #a855f7;border-radius:8px;padding:16px 20px;font-size:15px;font-style:italic;color:#4a1d6e;line-height:1.6;text-align:right\">\"{{ $('🧠 LLM Chain: Call Analysis').item.json.output.key_quote }}\"</div></td></tr><tr><td style=\"padding:18px 36px 0;text-align:right\"><h3 style=\"margin:0 0 10px 0;font-size:13px;font-weight:700;color:#6e6e73;letter-spacing:0.5px\">🏷️ נושאים שעלו</h3><div>{{ $('🧠 LLM Chain: Call Analysis').item.json.output.topics.map(t => `<span style=\"display:inline-block;background:#ede9fe;color:#5b21b6;padding:6px 14px;border-radius:999px;font-size:13px;font-weight:600;margin-left:8px;margin-bottom:6px\">${t}</span>`).join('') }}</div></td></tr><tr><td style=\"padding:6px 36px 0\">{{ $('🧠 LLM Chain: Call Analysis').item.json.output.red_flags && $('🧠 LLM Chain: Call Analysis').item.json.output.red_flags.length > 0 ? `<div style=\"margin-top:12px;background:#fef2f2;border-right:4px solid #dc2626;border-radius:8px;padding:14px 18px;text-align:right\"><div style=\"font-size:11px;color:#dc2626;font-weight:700;letter-spacing:0.5px;margin-bottom:8px\">⚠️ דגלים אדומים</div><ul style=\"margin:0;padding-right:18px;color:#991b1b;font-size:14px;line-height:1.8\">${$('🧠 LLM Chain: Call Analysis').item.json.output.red_flags.map(fl => `<li>${fl}</li>`).join('')}</ul></div>` : '' }}</td></tr><tr><td style=\"padding:18px 36px 0\"><div style=\"background:#eef2ff;border-right:4px solid #6366f1;border-radius:8px;padding:16px 20px;text-align:right\"><div style=\"font-size:11px;color:#312e81;font-weight:700;letter-spacing:0.5px;margin-bottom:6px\">⚡ פעולה הבאה מומלצת</div><div style=\"font-size:16px;color:#312e81;font-weight:600;line-height:1.5\">{{ $('🧠 LLM Chain: Call Analysis').item.json.output.next_action }}</div></div></td></tr><tr><td style=\"padding:24px 36px 28px;text-align:right\"><p style=\"font-size:14px;color:#3a3a3c;line-height:1.7;margin-bottom:8px\">הניתוח הופק אוטומטית מתוך הקלטת השיחה. מוזמנים לעקוב ולסגור.</p><p style=\"font-size:14px;color:#3a3a3c;line-height:1.7\"><strong>צוות Focus AI</strong></p></td></tr></table><table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" width=\"640\" style=\"max-width:640px;width:100%\"><tr><td align=\"center\" style=\"padding:24px 36px 12px\"><p style=\"margin:0;font-size:13px;color:#8e8e93;line-height:1.6\">שאלות? <a href=\"mailto:office@focusai.co.il\" style=\"color:#a855f7;text-decoration:none;font-weight:600\">office@focusai.co.il</a> &middot; <a href=\"https://wa.me/972539466408\" style=\"color:#a855f7;text-decoration:none;font-weight:600\">WhatsApp</a></p></td></tr><tr><td align=\"center\" style=\"padding:14px 36px 28px\"><img src=\"https://res.cloudinary.com/dfudxxzlj/image/upload/q_auto,f_auto,w_100/v1772353512/FOCUS_LOGO-02_hc0h1a.png\" width=\"60\" alt=\"Focus AI\" style=\"display:block;width:60px;height:auto;margin:0 auto\"/><p style=\"margin-top:8px;margin-bottom:0;font-size:11px;color:#aeaeb2\">פוקוס מערכות &middot; AI Dev &middot; {{ $now.toFormat('dd/MM/yyyy HH:mm') }}</p></td></tr></table></td></tr></table></body></html>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "bd1c0f35-5d4b-466e-aef2-24b93d58a515",
+      "name": "📧 Gmail: Deal Alert",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [1472, 272]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2f8c40b8-6c4f-4c50-ab7d-a29dcd6af10a",
+              "name": "summary",
+              "value": "={{ $json.output.summary }}",
+              "type": "string"
+            },
+            {
+              "id": "354cdea9-b103-4b8f-a77c-33f44336c2dd",
+              "name": "deal_mentioned",
+              "value": "={{ $json.output.deal_mentioned }}",
+              "type": "string"
+            },
+            {
+              "id": "d26c35b8-29f3-491e-97fb-3877f6f1fa89",
+              "name": "deal_value",
+              "value": "={{ $json.output.deal_value }}",
+              "type": "string"
+            },
+            {
+              "id": "21471a66-8a50-4656-b3b2-3969923afca8",
+              "name": "sentiment",
+              "value": "={{ $json.output.sentiment }}",
+              "type": "string"
+            },
+            {
+              "id": "8e9bb3b3-512f-4456-acce-84a4705b2351",
+              "name": "urgency",
+              "value": "={{ $json.output.urgency }}",
+              "type": "string"
+            },
+            {
+              "id": "6adeecfd-dd33-42ea-a449-33a4c7120faf",
+              "name": "close_probability",
+              "value": "={{ $json.output.close_probability }}",
+              "type": "string"
+            },
+            {
+              "id": "28c52b15-c493-44cc-bfad-bf7b5e6d4503",
+              "name": "next_action",
+              "value": "={{ $json.output.next_action }}",
+              "type": "string"
+            },
+            {
+              "id": "261f7ae5-61a4-4270-bba0-f6f37956cf8d",
+              "name": "key_quote",
+              "value": "={{ $json.output.key_quote }}",
+              "type": "string"
+            },
+            {
+              "id": "08fab360-c7f6-49bd-94da-1214b30507d7",
+              "name": "topics",
+              "value": "={{ $json.output.topics.join(', ') }}",
+              "type": "string"
+            },
+            {
+              "id": "0b54c1a7-32ab-4874-affc-56ac7ae1e8ee",
+              "name": "red_flags",
+              "value": "={{ $json.output.red_flags.join(', ') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [880, 352],
+      "id": "8e9bad78-04e2-4e47-882c-4bc731d38484",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('⚙️ Config').first().json['Sales Sheet URL'].match(/[-\\w]{25,}/)[0] }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Deals"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [1280, 272],
+      "id": "2cb51448-d753-41e9-832d-4c10b64f8e38",
+      "name": "📊 Sheets: Log Deal"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('⚙️ Config').first().json['Sales Sheet URL'].match(/[-\\w]{25,}/)[0] }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "All Calls"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [1280, 464],
+      "id": "0f742932-8b4a-494a-acbc-7038e03d4c29",
+      "name": "📊 Sheets: Log Call"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cfg-sales-sheet-url",
+              "name": "Sales Sheet URL",
+              "value": "PASTE_SPREADSHEET_URL_HERE",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "include": "all",
+        "options": {
+          "includeBinary": true,
+          "stripBinary": false
+        }
+      },
+      "id": "c1a2b3c4-1111-4a58-9c26-1e8f5a7d9b41",
+      "name": "⚙️ Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [160, 352]
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-48, 1056],
+      "id": "d2e3f4a5-2222-4be9-93e7-7459727c7ab0",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "resource": "spreadsheet",
+        "operation": "create",
+        "title": "Focus AI - Sales Calls",
+        "sheetsUi": {
+          "sheetValues": [
+            {
+              "title": "Deals"
+            },
+            {
+              "title": "All Calls"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [160, 1056],
+      "id": "e3f4a5b6-3333-4b7d-8b02-1f28048c48e1",
+      "name": "Create spreadsheet"
+    },
+    {
+      "parameters": {
+        "content": "## ⚙️ Database Setup (run once)\n\nA small automation, separate from the main flow: it creates the spreadsheet with the two tabs (Deals / All Calls).\n\n**After running:** copy the URL of the new spreadsheet (or its ID, both work) into the ⚙️ Config node at the start of the main flow. Every Sheets node pulls it from there automatically, one place to update.",
+        "height": 440,
+        "width": 528
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-112, 784],
+      "id": "f4a5b6c7-4444-4a86-98a6-fcc66c58674c",
+      "name": "Sticky Note Setup"
+    }
+  ],
+  "connections": {
+    "📞 Form Trigger: Sales Call": {
+      "main": [
+        [
+          {
+            "node": "⚙️ Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🎙️ OpenAI: Transcribe Call": {
+      "main": [
+        [
+          {
+            "node": "🧠 LLM Chain: Call Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🧠 LLM Chain: Call Analysis": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser (Sales)": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "🧠 LLM Chain: Call Analysis",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔀 IF: Deal Mentioned?": {
+      "main": [
+        [
+          {
+            "node": "📊 Sheets: Log Deal",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "📊 Sheets: Log Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "🧠 LLM Chain: Call Analysis",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "🔀 IF: Deal Mentioned?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📊 Sheets: Log Deal": {
+      "main": [
+        [
+          {
+            "node": "📧 Gmail: Deal Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "⚙️ Config": {
+      "main": [
+        [
+          {
+            "node": "🎙️ OpenAI: Transcribe Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Create spreadsheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "id": "",
+  "versionId": ""
+}

@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>קליניקה אלה - טיפולי קוסמטיקה מקצועיים</title>
+    <script src="config.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --rose-gold: #D4A5A0;
+            --cream: #F5F1EB;
+            --charcoal: #2D2D2D;
+            --white: #FFFFFF;
+            --light-gray: #E8E3DD;
+            --dark-rose: #B8857A;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --cream: #2a2520;
+                --white: #f5f1eb;
+                --charcoal: #e8e3dd;
+                --light-gray: #3d3933;
+            }
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--cream);
+            color: var(--charcoal);
+            line-height: 1.6;
+        }
+
+        /* Header & Navigation */
+        header {
+            background: var(--white);
+            padding: 1.5rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 300;
+            letter-spacing: 0.05em;
+            color: var(--rose-gold);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--charcoal);
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--rose-gold);
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--rose-gold) 0%, var(--dark-rose) 100%);
+            color: var(--white);
+            padding: 4rem 2rem;
+            text-align: right;
+        }
+
+        .hero-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+            line-height: 1.6;
+        }
+
+        .hero-cta {
+            display: inline-block;
+            background: var(--white);
+            color: var(--rose-gold);
+            padding: 1rem 2.5rem;
+            border-radius: 0;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            border: 2px solid var(--white);
+        }
+
+        .hero-cta:hover {
+            background: transparent;
+            color: var(--white);
+        }
+
+        .hero-image {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 0;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+            overflow: hidden;
+        }
+
+        .hero-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 0;
+        }
+
+        @media (max-width: 768px) {
+            .hero-content {
+                grid-template-columns: 1fr;
+            }
+
+            .hero h1 {
+                font-size: 1.8rem;
+            }
+
+            .hero-image {
+                height: 250px;
+            }
+        }
+
+        /* Services Section */
+        .services {
+            padding: 4rem 2rem;
+            background: var(--white);
+        }
+
+        .section-header {
+            text-align: right;
+            margin-bottom: 3rem;
+        }
+
+        .section-header h2 {
+            font-size: 2rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+            color: var(--charcoal);
+        }
+
+        .section-header p {
+            font-size: 1rem;
+            color: #666;
+        }
+
+        .services-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .service-card {
+            padding: 2rem;
+            background: var(--cream);
+            border-right: 4px solid var(--rose-gold);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .service-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(212, 165, 160, 0.15);
+        }
+
+        .service-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: var(--rose-gold);
+            font-weight: 500;
+        }
+
+        .service-card p {
+            font-size: 0.95rem;
+            color: #555;
+            line-height: 1.7;
+        }
+
+        /* Testimonials Section */
+        .testimonials {
+            padding: 4rem 2rem;
+            background: var(--cream);
+        }
+
+        .testimonials-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .testimonial {
+            background: var(--white);
+            padding: 1.5rem;
+            border-top: 3px solid var(--rose-gold);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .testimonial-text {
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+            color: var(--charcoal);
+            flex-grow: 1;
+            line-height: 1.6;
+        }
+
+        .testimonial-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+
+        .testimonial-name {
+            font-weight: 500;
+            color: var(--charcoal);
+        }
+
+        .testimonial-rating {
+            color: var(--rose-gold);
+        }
+
+        /* Form Section */
+        .lead-form-section {
+            padding: 4rem 2rem;
+            background: var(--white);
+            border-top: 1px solid var(--light-gray);
+        }
+
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-container h2 {
+            font-size: 1.8rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+            text-align: right;
+            color: var(--charcoal);
+        }
+
+        .form-container p {
+            text-align: right;
+            color: #666;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--charcoal);
+            font-size: 0.9rem;
+            text-align: right;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--light-gray);
+            background: var(--cream);
+            color: var(--charcoal);
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: border-color 0.3s;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--rose-gold);
+            background: var(--white);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-submit {
+            width: 100%;
+            padding: 1rem;
+            background: var(--rose-gold);
+            color: var(--white);
+            border: none;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .form-submit:hover {
+            background: var(--dark-rose);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--charcoal);
+            color: var(--white);
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            text-align: right;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h4 {
+            margin-bottom: 1rem;
+            color: var(--rose-gold);
+        }
+
+        .footer-section p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 2rem;
+            font-size: 0.85rem;
+            opacity: 0.7;
+        }
+
+        /* Utility */
+        .max-width {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                font-size: 14px;
+            }
+
+            .hero {
+                padding: 2rem 1rem;
+            }
+
+            .services,
+            .testimonials,
+            .lead-form-section {
+                padding: 2rem 1rem;
+            }
+
+            .section-header h2 {
+                font-size: 1.5rem;
+            }
+
+            .testimonials-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <nav>
+            <div class="logo">אלה</div>
+            <ul class="nav-links">
+                <li><a href="#services">שירותים</a></li>
+                <li><a href="#testimonials">חוות דעת</a></li>
+                <li><a href="#contact">יצירת קשר</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div>
+                <h1>קוסמטיקה מקצועית בידי אלה</h1>
+                <p>טיפולים מותאמים לכל לקוחה בתוצאות טבעיות ויפות. בוטוקס, טיפולי פנים עמוקים, והשקעה בעורך.</p>
+                <a href="#contact" class="hero-cta">קביעת פגישת ייעוץ</a>
+            </div>
+            <div class="hero-image">
+                <img src="LESSON6/Lesson-6-Clinic-Ella/01-מאורגן/שיווק-ומותג/תמונות קליניקה/אווירה.png" alt="אווירה בקליניקה אלה" style="width: 100%; height: 100%; object-fit: cover; border-radius: 0;">
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section style="background: var(--white); padding: 3rem 2rem;">
+        <div class="max-width">
+            <div class="section-header">
+                <h2>הקליניקה שלנו</h2>
+                <p>מרחב חם, מקצועי ומטפח</p>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                <div style="overflow: hidden; height: 250px; background: var(--light-gray);">
+                    <img src="LESSON6/Lesson-6-Clinic-Ella/01-מאורגן/שיווק-ומותג/תמונות קליניקה/חזית הקליניקה.png" alt="חזית הקליניקה" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <div style="overflow: hidden; height: 250px; background: var(--light-gray);">
+                    <img src="LESSON6/Lesson-6-Clinic-Ella/01-מאורגן/שיווק-ומותג/תמונות קליניקה/חלל הקליניקה.png" alt="חלל הקליניקה" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <div style="overflow: hidden; height: 250px; background: var(--light-gray);">
+                    <img src="LESSON6/Lesson-6-Clinic-Ella/01-מאורגן/שיווק-ומותג/תמונות קליניקה/חדר טיפולים.png" alt="חדר טיפולים" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="services" id="services">
+        <div class="max-width">
+            <div class="section-header">
+                <h2>השירותים שלנו</h2>
+                <p>טיפולים מקצועיים עם דגש על תוצאות טבעיות וזהו</p>
+            </div>
+
+            <div class="services-grid">
+                <div class="service-card">
+                    <h3>בוטוקס</h3>
+                    <p>טיפולי בוטוקס מדויקים עם דגש על תוצאות טבעיות. אלה מקשיבה לרצונותיך ובונה תוכנית מותאמת שלא תעשה אותך להיראות "מעופף". תוצאות שרואים ומרגישים.</p>
+                </div>
+
+                <div class="service-card">
+                    <h3>טיפול פנים עמוק</h3>
+                    <p>טיפולי פנים מקיפים שמתאימים לסוג העור שלך. מחקר, ניקוי עמוק, טיפול ממוקד וטיפול בבית. עור שלא נראה כמו שנים.</p>
+                </div>
+
+                <div class="service-card">
+                    <h3>ייעוץ אישי</h3>
+                    <p>פגישת ייעוץ ראשונה חינם. אלה שומעת לך, מבינה את הצרכים שלך, ובונה תוכנית טיפולים שתתאים לך בדיוק. בלי לחץ, בלי מכירה אגרסיבית.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Ella Section -->
+    <section style="background: var(--cream); padding: 4rem 2rem;">
+        <div class="max-width">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center;">
+                <div style="overflow: hidden; height: 350px; background: var(--light-gray);">
+                    <img src="LESSON6/Lesson-6-Clinic-Ella/01-מאורגן/שיווק-ומותג/תמונות קליניקה/אלה ברנע.png" alt="אלה" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <div style="text-align: right;">
+                    <h2 style="font-size: 2rem; font-weight: 300; margin-bottom: 1rem; color: var(--charcoal);">אלה - בעלת הקליניקה</h2>
+                    <p style="font-size: 1rem; line-height: 1.8; color: #555; margin-bottom: 1rem;">
+                        אלה היא קוסמטיקאית מקצועית עם ניסיון רב בטיפולי בוטוקס וטיפולי פנים עמוקים. היא מאמינה שכל לקוחה ראויה לטיפול אישי ותוצאות טבעיות יפות.
+                    </p>
+                    <p style="font-size: 1rem; line-height: 1.8; color: #555; margin-bottom: 1rem;">
+                        המטרה שלה היא שתרגישי בטוחה, מטופלת ורצויה בכל ביקור. אלה מקשיבה לך, מבינה את הצרכים שלך, ולא מנסה למכור לך דברים שאת לא צריכה.
+                    </p>
+                    <p style="font-size: 1rem; line-height: 1.8; color: var(--rose-gold); font-weight: 500;">
+                        "העור הטוב שלך מתחיל כאן." ✨
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Results Section -->
+    <section style="background: var(--white); padding: 3rem 2rem; border-top: 1px solid var(--light-gray);">
+        <div class="max-width">
+            <div class="section-header">
+                <h2>תוצאות אמיתיות</h2>
+                <p>ראו בעצמכם את ההבדל</p>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; max-width: 800px; margin: 0 auto;">
+                <div style="text-align: center;">
+                    <div style="height: 300px; overflow: hidden; background: var(--light-gray); margin-bottom: 1rem;">
+                        <img src="LESSON6/Lesson-6-Clinic-Ella/01-מאורגן/שיווק-ומותג/תמונות קליניקה/עור לפני.png" alt="לפני הטיפול" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <p style="font-weight: 500; color: var(--charcoal);">לפני</p>
+                </div>
+                <div style="text-align: center;">
+                    <div style="height: 300px; overflow: hidden; background: var(--light-gray); margin-bottom: 1rem;">
+                        <img src="LESSON6/Lesson-6-Clinic-Ella/01-מאורגן/שיווק-ומותג/תמונות קליניקה/עור אחרי.png" alt="אחרי הטיפול" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <p style="font-weight: 500; color: var(--charcoal);">אחרי</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials" id="testimonials">
+        <div class="max-width">
+            <div class="section-header">
+                <h2>מה אומרות הלקוחות שלנו</h2>
+                <p>50+ ביקורות 5 כוכבים מלקוחות אמיתיות</p>
+            </div>
+
+            <div class="testimonials-grid">
+                <div class="testimonial">
+                    <p class="testimonial-text">"הבוטוקס יצא טבעי לגמרי, בדיוק מה שרציתי. תודה אלה!"</p>
+                    <div class="testimonial-meta">
+                        <span class="testimonial-name">לילי פרץ</span>
+                        <span class="testimonial-rating">★★★★★</span>
+                    </div>
+                </div>
+
+                <div class="testimonial">
+                    <p class="testimonial-text">"אלה ממש מקשיבה ובונה תוכנית מותאמת. לא מנסה למכור לך דברים שאת לא צריכה."</p>
+                    <div class="testimonial-meta">
+                        <span class="testimonial-name">מלאק גמליאל</span>
+                        <span class="testimonial-rating">★★★★★</span>
+                    </div>
+                </div>
+
+                <div class="testimonial">
+                    <p class="testimonial-text">"סוף סוף מצאתי קוסמטיקאית שאני סומכת עליה. העור שלי לא נראה ככה שנים."</p>
+                    <div class="testimonial-meta">
+                        <span class="testimonial-name">רבקה לוי</span>
+                        <span class="testimonial-rating">★★★★★</span>
+                    </div>
+                </div>
+
+                <div class="testimonial">
+                    <p class="testimonial-text">"אווירה ביתית ומקצועית. ממליצה על טיפול הפנים העמוק."</p>
+                    <div class="testimonial-meta">
+                        <span class="testimonial-name">נועה אברהם</span>
+                        <span class="testimonial-rating">★★★★★</span>
+                    </div>
+                </div>
+
+                <div class="testimonial">
+                    <p class="testimonial-text">"שירות מעולה, יחס אישי, והתוצאות מדברות בעד עצמן. ממליצה בחום!"</p>
+                    <div class="testimonial-meta">
+                        <span class="testimonial-name">אריאל משיח</span>
+                        <span class="testimonial-rating">★★★★★</span>
+                    </div>
+                </div>
+
+                <div class="testimonial">
+                    <p class="testimonial-text">"קבעתי ייעוץ והפכתי ללקוחה קבועה. ההמלצה הכי טובה שאני יכולה לתת."</p>
+                    <div class="testimonial-meta">
+                        <span class="testimonial-name">נויה יפת</span>
+                        <span class="testimonial-rating">★★★★★</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Lead Form Section -->
+    <section class="lead-form-section" id="contact">
+        <div class="form-container">
+            <h2>קביעת פגישת ייעוץ</h2>
+            <p>פגישת ייעוץ ראשונה חינם. אלה תבחן את הצרכים שלך ותבנה תוכנית טיפול מותאמת.</p>
+
+            <form id="leadForm">
+                <div class="form-group">
+                    <label for="name">שם מלא</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">מספר טלפון</label>
+                    <input type="tel" id="phone" name="phone" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">דוא"ל</label>
+                    <input type="email" id="email" name="email">
+                </div>
+
+                <div class="form-group">
+                    <label for="service">איזה שירות מעניין אותך?</label>
+                    <select id="service" name="service">
+                        <option value="">בחרי שירות</option>
+                        <option value="botox">בוטוקס</option>
+                        <option value="facial">טיפול פנים עמוק</option>
+                        <option value="consultation">ייעוץ כללי</option>
+                        <option value="other">אחר</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="message">הודעה (אופציונלי)</label>
+                    <textarea id="message" name="message" placeholder="ספרי לנו עוד קצת על עצמך או על הטיפול שאת מחפשת..."></textarea>
+                </div>
+
+                <button type="submit" class="form-submit">שליחת בקשה</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>קליניקה אלה</h4>
+                <p>קוסמטיקה מקצועית עם דגש על תוצאות טבעיות ויפות.</p>
+            </div>
+
+            <div class="footer-section">
+                <h4>יצירת קשר</h4>
+                <p><a href="tel:+972501234567" style="color: var(--rose-gold); text-decoration: none;">📞 050-1234567</a></p>
+                <p><a href="https://wa.me/972501234567" style="color: var(--rose-gold); text-decoration: none;">💚 WhatsApp</a></p>
+                <p><a href="mailto:info@clinicella.co.il" style="color: var(--rose-gold); text-decoration: none;">✉️ דוא"ל</a></p>
+            </div>
+
+            <div class="footer-section">
+                <h4>שעות פעילות</h4>
+                <p>ראשון - חמישי: 10:00 - 18:00</p>
+                <p>שישי: 10:00 - 14:00</p>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2026 קליניקה אלה. כל הזכויות שמורות.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Form submission handler with N8N webhook integration
+        const form = document.getElementById('leadForm');
+        const serviceNames = {
+            'botox': 'בוטוקס',
+            'facial': 'טיפול פנים עמוק',
+            'consultation': 'ייעוץ כללי',
+            'other': 'אחר'
+        };
+
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            const email = document.getElementById('email').value;
+            const serviceValue = document.getElementById('service').value;
+            const serviceName = serviceNames[serviceValue] || serviceValue;
+            const message = document.getElementById('message').value;
+            const timestamp = new Date().toISOString();
+
+            // Prepare webhook payload
+            const payload = {
+                name: name,
+                phone: phone,
+                email: email,
+                service: serviceName,
+                serviceValue: serviceValue,
+                message: message,
+                timestamp: timestamp,
+                source: 'clinic-ella-landing'
+            };
+
+            try {
+                // Send webhook to N8N (from config.js)
+                const webhookUrl = typeof CLINIC_CONFIG !== 'undefined'
+                    ? CLINIC_CONFIG.n8n.webhookUrl
+                    : 'YOUR_N8N_WEBHOOK_URL';
+
+                if (webhookUrl === 'YOUR_N8N_WEBHOOK_URL' || webhookUrl === 'https://your-n8n-instance.com/webhook/clinic-ella-leads') {
+                    throw new Error('אנא הגדר את N8N webhook URL בקובץ config.js');
+                }
+
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    // Show success message
+                    showSuccessMessage(name);
+                    form.reset();
+                } else {
+                    throw new Error('שגיאה בשליחת הנתונים');
+                }
+            } catch (error) {
+                console.error('Webhook error:', error);
+                alert('תודה על הבקשה! פרטיך קיבלנו וקוסמטיקאית אלה תחזור אליך בקרוב. 💚');
+                form.reset();
+            }
+        });
+
+        function showSuccessMessage(name) {
+            const formContainer = document.querySelector('.form-container');
+            const successMessage = document.createElement('div');
+            successMessage.style.cssText = `
+                background: #D4A5A0;
+                color: white;
+                padding: 2rem;
+                border-radius: 0;
+                text-align: right;
+                margin-bottom: 2rem;
+                animation: fadeIn 0.3s ease-in;
+            `;
+            successMessage.innerHTML = `
+                <h3 style="margin-bottom: 1rem; font-size: 1.3rem;">✨ תודה ${name}!</h3>
+                <p style="margin: 0; line-height: 1.6;">
+                    פרטיך נקלטו בהצלחה. אלה תחזור אליך בקרוב דרך טלפון או WhatsApp.
+                </p>
+                <p style="margin: 1rem 0 0 0; font-size: 0.9rem; opacity: 0.9;">
+                    בזמן זה, אתם מוזמנים להכיר אותנו טוב יותר דרך סוציאל מדיה שלנו.
+                </p>
+            `;
+
+            const submitButton = form.querySelector('.form-submit');
+            submitButton.style.display = 'none';
+            formContainer.insertBefore(successMessage, form);
+        }
+    </script>
+
+    <style>
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</body>
+</html>
